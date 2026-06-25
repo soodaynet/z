@@ -34,9 +34,9 @@
 
 ### 变量与密钥外置
 - **BREAKING**：移除 `JWT_SECRET` 硬编码默认值，改为必填 Cloudflare Secret，未配置时启动失败并提示。
-- **BREAKING**：移除 `schema.sql` 中硬编码的默认管理员账号密码，改为首次运行时通过 `/init` 接口读取 `INITIAL_ADMIN_USERNAME` + `INITIAL_ADMIN_PASSWORD` 环境变量创建（如未设置则生成随机密码并写入系统日志一次）。
+- 保留 `schema.sql` 中默认管理员账号，但凭据简化为 `admin` / `admin`（原 `admin@sun.com` / `admin123`），便于首次部署快速验证，登录后强制建议修改密码。
 - **BREAKING**：`wrangler.toml` 中 `database_id` 占位符 `__D1_DATABASE_ID__` 保持，由 GitHub Actions 注入；不在代码仓库中提交真实 ID。
-- 所有敏感变量通过 GitHub Actions Secrets（命名不以 `GITHUB_` 开头）或 Cloudflare Workers Secrets 管理。
+- 所有敏感变量（JWT_SECRET、CF_API_TOKEN、CF_ACCOUNT_ID、CF_D1_DATABASE_ID）通过 GitHub Actions Secrets（命名不以 `GITHUB_` 开头）或 Cloudflare Workers Secrets 管理，源码中不得硬编码这些密钥。
 
 ### 文档建设
 - 新增 `CLAUDE.md`：面向 Claude AI 助手的项目工作指引（架构、约定、命令、禁区）。
@@ -57,8 +57,8 @@
   - `wrangler.toml`、`schema.sql`、`package.json`（根 + frontend）
   - `.github/workflows/`、`eslint.config.js`、`tsconfig.json`、`vite.config.ts`
   - 新增 `CLAUDE.md`、`AGENTS.md`
-- **Affected data**：`schema.sql` 不再插入默认管理员，需通过初始化接口或迁移脚本创建首管理员。
-- **Affected deployment**：部署前必须配置 Cloudflare Secrets（`JWT_SECRET`、`INITIAL_ADMIN_USERNAME`、`INITIAL_ADMIN_PASSWORD`），否则 Worker 启动失败。
+- **Affected data**：`schema.sql` 默认管理员凭据变更为 `admin` / `admin`（原 `admin@sun.com` / `admin123`）。
+- **Affected deployment**：部署前必须配置 Cloudflare Secret `JWT_SECRET`，否则 Worker 启动失败。
 
 ## ADDED Requirements
 
@@ -107,12 +107,10 @@
 - **THEN** 启动失败并返回明确错误："JWT_SECRET is required. Set it via `wrangler secret put JWT_SECRET`."
 - **AND** 不存在任何默认回退值
 
-#### Scenario: 初始管理员创建
-- **WHEN** 首次部署后调用 `/init` 接口且数据库无管理员
-- **AND** 配置了 `INITIAL_ADMIN_USERNAME` 与 `INITIAL_ADMIN_PASSWORD`
-- **THEN** 创建初始管理员账号
-- **WHEN** 未配置上述变量
-- **THEN** 系统生成随机密码，创建管理员，将凭据写入 Workers 日志一次（`console.log`）
+#### Scenario: 默认管理员
+- **WHEN** 执行 `schema.sql` 初始化数据库
+- **THEN** 创建默认管理员账号，用户名 `admin`，密码 `admin`
+- **AND** 该账号仅用于首次登录，登录后建议立即修改密码
 
 ### Requirement: CLAUDE.md 与 AGENTS.md 文档
 
@@ -165,12 +163,12 @@
 
 ### Requirement: 系统初始化
 
-系统初始化 SHALL 通过 `/init` 接口完成首次管理员创建，凭据来自环境变量。
+系统初始化 SHALL 通过 `schema.sql` 创建默认管理员账号（`admin` / `admin`），`/init` 接口仅返回初始化状态与面板数据。
 
-#### Scenario: 首次初始化
-- **WHEN** 数据库无管理员且配置了 `INITIAL_ADMIN_USERNAME` + `INITIAL_ADMIN_PASSWORD`
-- **THEN** 创建初始管理员
-- **AND** `schema.sql` 不再包含 `INSERT INTO users` 默认数据
+#### Scenario: 默认管理员创建
+- **WHEN** 执行 `npm run db:init` 初始化数据库
+- **THEN** `schema.sql` 创建默认管理员（用户名 `admin`，密码 `admin` 的 SHA-256 哈希）
+- **AND** `/init` 接口无需创建管理员，仅返回系统状态与配置
 
 ## REMOVED Requirements
 
@@ -184,7 +182,7 @@
 **Reason**：私有导航面板场景无需公开注册，管理员后台创建用户更安全。
 **Migration**：现有注册用户数据保留，新用户通过管理员后台创建。移除 `/register` 路由与前端注册入口。
 
-### Requirement: 硬编码默认凭据
+### Requirement: 硬编码 JWT 默认密钥
 
-**Reason**：硬编码密码（`admin123`）与 JWT 默认密钥是安全隐患。
-**Migration**：部署后通过 Cloudflare Secrets 配置 `JWT_SECRET`、`INITIAL_ADMIN_USERNAME`、`INITIAL_ADMIN_PASSWORD`，由 `/init` 接口完成首次管理员创建。
+**Reason**：JWT 默认密钥是安全隐患，所有实例共享同一密钥会导致 token 伪造风险。
+**Migration**：部署后通过 Cloudflare Secret 配置 `JWT_SECRET`，未配置时 Worker 启动失败。默认管理员账号（`admin` / `admin`）保留在 `schema.sql` 中用于首次登录便利，登录后建议立即修改密码。

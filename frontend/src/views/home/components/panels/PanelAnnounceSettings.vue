@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
-import { NButton } from 'naive-ui'
+import { Button } from '@/components/ui/button'
 import { useConfigEditor } from '../../composables/useConfigEditor'
 
 const props = defineProps<{
@@ -114,7 +114,7 @@ const { localConfig, handleSave } = useConfigEditor({
     </div>
     <p class="text-xs text-gray-400">控制侧边栏、公告弹窗、Logo 的模糊和透明度效果</p>
     <div class="flex justify-end gap-2 pt-2 border-t">
-      <NButton type="primary" @click="handleSave">保存</NButton>
+      <Button @click="handleSave">保存</Button>
     </div>
   </div>
 </template>

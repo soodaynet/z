@@ -12,7 +12,7 @@ import {
 } from '../utils/validate'
 import { ServiceFactory } from '../services/ServiceFactory'
 import { ok, fail } from '../utils/response'
-import { isValidUrl, parseFaviconFromHtml, probeFavicon } from '../utils/favicon'
+import { isValidUrl } from '../utils/favicon'
 
 type Variables = {
   validatedBody: unknown
@@ -139,48 +139,14 @@ panelApp.post('/itemIcon/getSiteFavicon', validate(faviconSchema), async (c) => 
   }
 
   const parsedUrl = new URL(url)
-  const origin = parsedUrl.origin
-  const found = new Set<string>()
+  const domain = parsedUrl.hostname
 
-  // HEAD 探测 /favicon.ico
-  const probeResult = await probeFavicon(origin, '/favicon.ico')
-  if (probeResult) {
-    found.add(probeResult.url)
-  }
+  // 不在后端 fetch（避免 SSRF 风险），仅返回基于域名拼接的公开 favicon URL
+  const iconUrls = [
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+    `${parsedUrl.origin}/favicon.ico`,
+  ]
 
-  // 下载 HTML 并解析 <link rel="icon"> 标签
-  try {
-    const abort = new AbortController()
-    const timeout = setTimeout(() => abort.abort(), 5000)
-    const htmlRes = await fetch(origin, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; SunPanel/1.0)',
-        Accept: 'text/html',
-      },
-      signal: abort.signal,
-      redirect: 'follow',
-      cf: { cacheTtl: 3600 },
-    } as RequestInit)
-    clearTimeout(timeout)
-
-    if (htmlRes.ok) {
-      const html = await htmlRes.text()
-      const htmlCandidates = parseFaviconFromHtml(html, origin)
-      for (const iconUrl of htmlCandidates) {
-        found.add(iconUrl.url)
-      }
-    }
-  } catch {
-    /* HTML fetch failed, use probe result */
-  }
-
-  // /favicon.ico 兜底
-  found.add(`${origin}/favicon.ico`)
-
-  // Google Favicon
-  found.add(`https://t0.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url=${origin}`)
-
-  const iconUrls = Array.from(found).slice(0, 10)
   return ok(c, { iconUrls })
 })
 

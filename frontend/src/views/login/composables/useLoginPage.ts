@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAbout } from '@/api/index'
+import { getAbout } from '@/modules/settings/api'
 import { useAuthStore } from '@/store/modules/auth'
 import { updateFavicon, getCachedSiteConfig } from '@/utils/faviconUtils'
 import {

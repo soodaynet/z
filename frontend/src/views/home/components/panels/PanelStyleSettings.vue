@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
-import { NButton } from 'naive-ui'
-import { useMessage } from 'naive-ui'
+import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
 import { useConfigEditor } from '../../composables/useConfigEditor'
 
 const props = defineProps<{
@@ -14,8 +14,6 @@ const emit = defineEmits<{
   (e: 'reset'): void
 }>()
 
-const message = useMessage()
-
 const { localConfig, handleSave, panelState } = useConfigEditor({
   config: toRef(props, 'panelConfig'),
   onSaved: props.onSaved,
@@ -24,7 +22,7 @@ const { localConfig, handleSave, panelState } = useConfigEditor({
 
 function handleReset() {
   panelState.setPanelConfig({})
-  message.success('已重置')
+  toast.success('已重置')
   emit('reset')
 }
 </script>
@@ -102,8 +100,8 @@ function handleReset() {
       />
     </div>
     <div class="flex justify-end gap-2 pt-2 border-t">
-      <NButton @click="handleReset">重置</NButton>
-      <NButton type="primary" @click="handleSave">保存</NButton>
+      <Button variant="outline" @click="handleReset">重置</Button>
+      <Button @click="handleSave">保存</Button>
     </div>
   </div>
 </template>

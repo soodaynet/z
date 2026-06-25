@@ -19,8 +19,8 @@
 - [ ] `src/modules/shared/` 已创建，共享工具（response、errors、logger、db、jwt、password、validate）已迁移
 - [ ] `src/index.ts` 已重写，使用 ModuleRegistry 注册所有模块
 - [ ] auth 模块（`src/modules/auth/`）已创建，仅包含 `/login` 路由，无 `/register`
-- [ ] init 模块（`src/modules/init/`）已创建，支持通过 `INITIAL_ADMIN_USERNAME` + `INITIAL_ADMIN_PASSWORD` 创建首管理员
-- [ ] init 模块在未配置环境变量时生成随机密码并 `console.log` 输出一次
+- [ ] init 模块（`src/modules/init/`）已创建，`/init` 接口仅返回初始化状态与面板数据
+- [ ] `schema.sql` 默认管理员凭据已更新为 `admin` / `admin`（SHA-256 哈希 `8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918`）
 - [ ] panel 模块（`src/modules/panel/`）已创建，包含 item-icon、group 子模块与 getAllData 聚合入口
 - [ ] user-config 模块（`src/modules/user-config/`）已创建
 - [ ] users 模块（`src/modules/users/`）已创建，包含 `/panel/users/*` 与 `/user/*` 路由
@@ -29,8 +29,7 @@
 - [ ] 每个模块目录自包含 `index.ts`、`routes.ts`、`service.ts`、`validator.ts`、`types.ts`
 - [ ] 模块间无内部实现依赖，仅通过共享类型通信
 - [ ] `JWT_SECRET` 硬编码默认值已移除，未配置时启动失败并提示
-- [ ] `schema.sql` 中 `INSERT INTO users` 默认管理员数据已移除
-- [ ] 源码中无任何硬编码密钥、密码、ID
+- [ ] 源码中无硬编码 JWT_SECRET、CF_API_TOKEN、CF_ACCOUNT_ID、CF_D1_DATABASE_ID（默认管理员 admin/admin 保留在 schema.sql）
 
 ## 阶段三：前端 shadcn-vue 迁移
 
@@ -63,7 +62,7 @@
 - [ ] `.github/workflows/deploy-worker.yml` 使用 Node 24、pnpm 最新版、最新 actions 版本
 - [ ] `.github/workflows/pr-check.yml` 增加 `pnpm run typecheck` 步骤
 - [ ] 所有 GitHub Secret 名称不以 `GITHUB_` 开头（CF_API_TOKEN、CF_ACCOUNT_ID、CF_D1_DATABASE_ID）
-- [ ] 文档说明 Cloudflare Secrets 配置要求（JWT_SECRET、INITIAL_ADMIN_USERNAME、INITIAL_ADMIN_PASSWORD）
+- [ ] 文档说明 Cloudflare Secrets 配置要求（JWT_SECRET 必填）
 
 ## 阶段五：文档建设
 
@@ -80,8 +79,8 @@
 - [ ] 全局搜索无 `naive-ui` 残留
 - [ ] 全局搜索无 `proxy-image` 残留
 - [ ] 全局搜索无 `/register` 路由残留
-- [ ] 全局搜索无 `admin123` 硬编码残留
+- [ ] 全局搜索无 `admin123` 硬编码残留（默认管理员已改为 admin/admin）
 - [ ] 全局搜索无硬编码 `JWT_SECRET` 默认值
 - [ ] 所有后端模块在 `src/index.ts` 中正确注册
-- [ ] `schema.sql` 无默认管理员 INSERT 语句
+- [ ] `schema.sql` 默认管理员为 admin/admin（非原 admin@sun.com/admin123）
 - [ ] 无内联样式（inline style）违反约定

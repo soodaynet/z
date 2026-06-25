@@ -8,6 +8,16 @@ on:
       - '**.md'
   workflow_dispatch:
 
+# ========== 所需 GitHub Secrets ==========
+# CF_API_TOKEN         Cloudflare API Token（Workers 编辑权限）
+# CF_ACCOUNT_ID        Cloudflare Account ID
+# CF_D1_DATABASE_ID    D1 数据库 ID
+# 注意：GitHub Secret 名称不得以 GITHUB_ 开头
+#
+# ========== 所需 Cloudflare Workers Secrets ==========
+# JWT_SECRET           JWT 签名密钥（首次部署后通过 `wrangler secret put JWT_SECRET` 配置）
+# 上述 Cloudflare Secret 不通过 GitHub Actions 注入，部署后在 Worker 上持久化
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,6 +39,13 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (Backend)
+        run: pnpm run typecheck
+
+      - name: Typecheck (Frontend)
+        run: pnpm run typecheck
+        working-directory: ./frontend
 
       - name: Build Frontend
         run: pnpm run build

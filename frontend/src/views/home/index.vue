@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import DOMPurify from 'dompurify'
-import { NBackTop, NButton, NTooltip, useMessage } from 'naive-ui'
 import { defineAsyncComponent, onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
+import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
 import { useAuthStore, usePanelState } from '@/store'
-import { deleteItems, saveItemSort } from '@/api/index'
-import { invalidateCache, invalidateCacheByPrefix } from '@/utils/requestCache'
+import { deleteItems, saveItemSort } from '@/modules'
 import { useAnnouncement } from './composables/useAnnouncement'
 import { useItemEditor } from './composables/useItemEditor'
 import { useSiteConfig, SITE_CACHE_KEY } from './composables/useSiteConfig'
@@ -23,7 +22,6 @@ const HomeEditIconModal = defineAsyncComponent(() => import('./components/HomeEd
 const HomeIframeModal = defineAsyncComponent(() => import('./components/HomeIframeModal.vue'))
 import { useFavicon } from './composables/useFavicon'
 
-const message = useMessage()
 const authStore = useAuthStore()
 const panelState = usePanelState()
 
@@ -41,9 +39,14 @@ function buildEagerSet() {
   }
 }
 
-const safeFooterHtml = computed(() => {
-  return DOMPurify.sanitize(panelState.panelConfig.footerHtml || '')
-})
+// 返回顶部按钮显示状态
+const showBackTop = ref(false)
+function handleScroll() {
+  showBackTop.value = window.scrollY > 300
+}
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // ---------- Composables ----------
 
@@ -154,8 +157,7 @@ async function handleDeleteItem(item: Panel.ItemInfo) {
   try {
     const res = await deleteItems([item.id])
     if (res.code === 0) {
-      message.success('删除成功')
-      invalidateCacheByPrefix('panel:')
+      toast.success('删除成功')
       // 直接从本地 groups 中移除该 item，不发起额外请求
       for (const group of groups.value) {
         if (group.items) {
@@ -166,9 +168,9 @@ async function handleDeleteItem(item: Panel.ItemInfo) {
           }
         }
       }
-    } else message.error(res.msg || '删除失败')
+    } else toast.error(res.msg || '删除失败')
   } catch {
-    message.error('网络错误')
+    toast.error('网络错误')
   }
 }
 
@@ -178,12 +180,11 @@ async function saveItemSortOrder(group: ItemGroup) {
   try {
     const res = await saveItemSort({ sortItems, itemIconGroupId: group.id! })
     if (res.code === 0) {
-      message.success('排序已保存')
-      invalidateCacheByPrefix('panel:')
+      toast.success('排序已保存')
       // 排序结果已在拖拽时本地更新，无需重新请求
-    } else message.error(res.msg || '排序保存失败')
+    } else toast.error(res.msg || '排序保存失败')
   } catch {
-    message.error('网络错误')
+    toast.error('网络错误')
   }
 }
 
@@ -192,8 +193,7 @@ function handleStarterSaved() {
   refreshAll()
 }
 function handleGroupSaved() {
-  invalidateCacheByPrefix('panel:')
-  loadData()
+  refreshAll()
 }
 
 onMounted(async () => {
@@ -202,18 +202,25 @@ onMounted(async () => {
   // 一次 /init 调用替代 3 次 API 请求，显著减少首次加载的网络往返
   loadInitData()
   startAnnouncementTimer()
+  window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
 // 离开首页时清理侧边栏可能遗留的 overflow 锁定
 onUnmounted(() => {
   document.documentElement.style.overflow = ''
+  window.removeEventListener('scroll', handleScroll)
 })
+
+// 侧边栏展开时锁定/恢复页面滚动
+function handleSidebarExpanded(val: boolean) {
+  if (typeof document !== 'undefined') {
+    document.documentElement.style.overflow = val ? 'hidden' : ''
+  }
+}
 
 // 监听登录状态变化（退出登录 → 清缓存 + 重新加载 auth + 数据）
 watch(() => authStore.isAuthenticated, () => {
-  invalidateCacheByPrefix('panel:')
-  invalidateCache('site:about')
-  loadInitData()
+  refreshAll()
 })
 
 // 退出登录时立刻清理所有登录态 UI 状态（编辑模式、设置面板等）
@@ -239,7 +246,7 @@ watch(() => authStore.isLoggedIn, (val) => {
     :style="glassVars"
   >
     <!-- 侧边栏分组导航 -->
-    <HomeSidebar :groups="visibleGroups" @open-settings="starterShow = true" @sidebar-expanded="(val: boolean) => { if (typeof document !== 'undefined') document.documentElement.style.overflow = val ? 'hidden' : '' }" />
+    <HomeSidebar :groups="visibleGroups" @open-settings="starterShow = true" @sidebar-expanded="handleSidebarExpanded" />
 
     <!-- Logo + 访客标识（独立固定定位组件） -->
     <HomeLogo />
@@ -284,25 +291,24 @@ watch(() => authStore.isLoggedIn, (val) => {
             <div class="flex items-center gap-2 mb-3 px-2 group-title-row">
               <h3 class="text-white text-base sm:text-lg font-medium">{{ group.title }}</h3>
               <div class="group-title-btns opacity-0 transition-opacity duration-200 flex items-center gap-1">
-                <NTooltip v-if="!authStore.isVisitMode" trigger="hover" placement="top">
-                  <template #trigger>
-                    <NButton
-                      size="tiny"
-                      :type="editModeGroupId === group.id ? 'warning' : 'default'"
-                      @click="toggleEditMode(group.id!)"
-                      class="!px-2 !min-w-0"
-                    >
-                      {{ editModeGroupId === group.id ? '✓' : '✎' }}
-                    </NButton>
-                  </template>
-                  {{ editModeGroupId === group.id ? '完成' : '编辑' }}
-                </NTooltip>
-                <NTooltip v-if="!authStore.isVisitMode" trigger="hover" placement="top">
-                  <template #trigger>
-                    <NButton size="tiny" @click="openAddItem(group.id!)" class="!px-2 !min-w-0">+</NButton>
-                  </template>
-                  添加
-                </NTooltip>
+                <Button
+                  v-if="!authStore.isVisitMode"
+                  size="icon"
+                  :variant="editModeGroupId === group.id ? 'secondary' : 'ghost'"
+                  :title="editModeGroupId === group.id ? '完成' : '编辑'"
+                  class="h-7 w-7 text-white hover:bg-white/20"
+                  @click="toggleEditMode(group.id!)"
+                >
+                  {{ editModeGroupId === group.id ? '✓' : '✎' }}
+                </Button>
+                <Button
+                  v-if="!authStore.isVisitMode"
+                  size="icon"
+                  variant="ghost"
+                  title="添加"
+                  class="h-7 w-7 text-white hover:bg-white/20"
+                  @click="openAddItem(group.id!)"
+                >+</Button>
               </div>
             </div>
             <VueDraggable
@@ -325,24 +331,19 @@ watch(() => authStore.isLoggedIn, (val) => {
               />
             </VueDraggable>
             <div v-else class="flex flex-wrap gap-2 sm:gap-3">
-              <NTooltip
+              <div
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
-                trigger="hover"
-                :disabled="!item.description"
-                placement="bottom"
+                :title="item.description || undefined"
               >
-                <template #trigger>
-                  <HomeItemCard
-                    :item="item"
-                    :editable="false"
-                    :is-edit-mode="false"
-                    :eager-load="eagerKeySet.has(`${gi}-${ii}`)"
-                    @click="openUrl"
-                  />
-                </template>
-                <span>{{ item.description }}</span>
-              </NTooltip>
+                <HomeItemCard
+                  :item="item"
+                  :editable="false"
+                  :is-edit-mode="false"
+                  :eager-load="eagerKeySet.has(`${gi}-${ii}`)"
+                  @click="openUrl"
+                />
+              </div>
             </div>
             <div
               v-if="!group.items || group.items.length === 0"
@@ -359,21 +360,22 @@ watch(() => authStore.isLoggedIn, (val) => {
     <div
       v-if="panelState.panelConfig.footerHtml"
       class="sticky bottom-0 z-20 text-center py-4 text-gray-400 text-sm"
-      v-html="safeFooterHtml"
-    />
-
-    <NBackTop
-      :listen-to="() => scrollContainerRef"
-      :right="10"
-      :bottom="10"
-      style="background-color: transparent; border: none; box-shadow: none"
     >
-      <div class="shadow-[0_0_10px_2px_rgba(0,0,0,0.2)] rounded-lg">
-        <NButton color="#2a2a2a6b">
-          <template #icon><span class="text-white text-lg">▲</span></template>
-        </NButton>
-      </div>
-    </NBackTop>
+      {{ panelState.panelConfig.footerHtml }}
+    </div>
+
+    <!-- 返回顶部 -->
+    <Transition name="loader-fade">
+      <button
+        v-if="showBackTop"
+        type="button"
+        title="返回顶部"
+        class="fixed right-2.5 bottom-2.5 z-40 w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2a2a6b] text-white text-lg shadow-[0_0_10px_2px_rgba(0,0,0,0.2)] hover:bg-[#3a3a3a8c] transition-colors"
+        @click="scrollToTop"
+      >
+        ▲
+      </button>
+    </Transition>
 
     <!-- ========== AppStarter 应用启动器 ========== -->
     <HomeAppStarter

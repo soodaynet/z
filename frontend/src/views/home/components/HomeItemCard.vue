@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { NButton, NTooltip } from 'naive-ui'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   item: Panel.ItemInfo
@@ -18,18 +18,7 @@ const emit = defineEmits<{
 
 const errored = ref(false)
 
-/** 如果图标 URL 是代理地址 (/api/proxy-image?url=...)，提取真实 URL */
-const realIconSrc = computed(() => {
-  const src = props.item.icon?.src || ''
-  if (src.startsWith('/api/proxy-image?url=')) {
-    try {
-      return decodeURIComponent(src.slice('/api/proxy-image?url='.length))
-    } catch {
-      return src
-    }
-  }
-  return src
-})
+const realIconSrc = computed(() => props.item.icon?.src || '')
 </script>
 
 <template>
@@ -66,18 +55,20 @@ const realIconSrc = computed(() => {
 
     <!-- 编辑模式下显示编辑/删除按钮 -->
     <div v-if="editable && isEditMode" class="absolute top-1 right-1 flex gap-1">
-      <NTooltip trigger="hover" placement="top">
-        <template #trigger>
-          <NButton size="tiny" @click.stop="emit('edit', item)" class="!px-2 !min-w-0">✎</NButton>
-        </template>
-        编辑
-      </NTooltip>
-      <NTooltip trigger="hover" placement="top">
-        <template #trigger>
-          <NButton size="tiny" type="error" @click.stop="emit('delete', item)" class="!px-2 !min-w-0">✕</NButton>
-        </template>
-        删除
-      </NTooltip>
+      <Button
+        size="icon"
+        variant="secondary"
+        title="编辑"
+        class="h-6 w-6"
+        @click.stop="emit('edit', item)"
+      >✎</Button>
+      <Button
+        size="icon"
+        variant="destructive"
+        title="删除"
+        class="h-6 w-6"
+        @click.stop="emit('delete', item)"
+      >✕</Button>
     </div>
   </div>
 </template>

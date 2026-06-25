@@ -27,14 +27,11 @@ function handleAppClick(appKey: string) {
 </script>
 
 <template>
-  <NLayoutSider
-    :collapsed="collapsed"
-    collapse-mode="width"
-    :collapsed-width="0"
-    :width="isSmallScreen ? '100%' : 180"
-    content-style="overflow: hidden"
+  <div
+    class="h-full overflow-hidden transition-[width] duration-300 shrink-0"
+    :style="{ width: collapsed ? '0px' : (isSmallScreen ? '100%' : '180px') }"
   >
-    <div class="h-full dark:bg-[#2c2c32] p-2">
+    <div class="h-full dark:bg-[#2c2c32] p-2 min-w-[180px]">
       <div
         v-for="app in apps" :key="app.key"
         class="px-3 py-2.5 rounded-lg mb-1 cursor-pointer font-medium text-sm flex items-center gap-2 transition-colors"
@@ -45,5 +42,5 @@ function handleAppClick(appKey: string) {
         <span>{{ app.name }}</span>
       </div>
     </div>
-  </NLayoutSider>
+  </div>
 </template>

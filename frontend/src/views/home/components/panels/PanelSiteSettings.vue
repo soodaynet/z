@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { NButton } from 'naive-ui'
-import { useMessage } from 'naive-ui'
-import { saveSiteSettings } from '@/api/index'
+import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
+import { saveSiteSettings } from '@/modules'
 
 const props = defineProps<{
   siteConfig: Panel.SiteConfig
@@ -11,8 +11,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:siteConfig', config: Panel.SiteConfig): void
 }>()
-
-const message = useMessage()
 
 const localSiteConfig = ref<Panel.SiteConfig>({})
 
@@ -37,10 +35,10 @@ async function handleSave() {
     })
     if (res.code === 0) {
       emit('update:siteConfig', { ...localSiteConfig.value })
-      message.success('站点设置已保存')
-    } else message.error(res.msg || '保存失败')
+      toast.success('站点设置已保存')
+    } else toast.error(res.msg || '保存失败')
   } catch {
-    message.error('保存失败')
+    toast.error('保存失败')
   }
 }
 </script>
@@ -101,7 +99,7 @@ async function handleSave() {
     </div>
     <p class="text-xs text-gray-400">控制登录页卡片背景的模糊和透明度效果</p>
     <div class="flex justify-end gap-2 pt-2 border-t">
-      <NButton type="primary" @click="handleSave">保存</NButton>
+      <Button @click="handleSave">保存</Button>
     </div>
   </div>
 </template>

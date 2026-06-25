@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './main.css';
 
 /* ========== CSS 设计令牌 (Design Tokens) ========== */
 :root {

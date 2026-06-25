@@ -24,7 +24,7 @@ export function validate(schema: ZodSchema) {
   }
 }
 
-export { loginSchema, registerSchema } from '../validators/auth'
+export { loginSchema } from '../validators/auth'
 export {
   iconGroupSchema,
   iconEditSchema,
