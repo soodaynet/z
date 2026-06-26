@@ -72,7 +72,7 @@ function applySiteConfigToDom(config: Panel.SiteConfig) {
   updateFavicon(config.favicon_url || '')
 }
 
-const { groups, loading, visibleGroups, loadData, loadInitData, refreshAll } = useDataLoader({
+const { groups, visibleGroups, loadData, loadInitData, refreshAll } = useDataLoader({
   authStore,
   panelState,
   siteConfig,
