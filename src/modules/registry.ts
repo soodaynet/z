@@ -25,14 +25,4 @@ export class ModuleRegistry {
       app.route(module.mountPath, module.router)
     }
   }
-
-  /** 获取模块 */
-  get(name: string): ModuleDefinition | undefined {
-    return this.modules.get(name)
-  }
-
-  /** 列出所有模块名 */
-  list(): string[] {
-    return Array.from(this.modules.keys())
-  }
 }

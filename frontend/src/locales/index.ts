@@ -22,7 +22,3 @@ export const i18n = createI18n({
 export function setupI18n(app: App) {
   app.use(i18n)
 }
-
-export function t(key: string): string {
-  return i18n.global.t(key) as string
-}

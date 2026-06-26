@@ -6,5 +6,3 @@ export const panelModule: ModuleDefinition = {
   mountPath: '/panel',
   router,
 }
-
-export default panelModule

@@ -1,4 +1,4 @@
-import type { SystemSettingRow } from '../../models/types'
+import type { SystemSettingRow } from '../shared/types'
 
 // 重新导出数据库行类型，方便模块内统一引用
 export type { SystemSettingRow }

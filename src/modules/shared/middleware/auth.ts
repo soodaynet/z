@@ -1,35 +1,17 @@
-import type { Context, Next } from 'hono'
-import type { D1Database } from '@cloudflare/workers-types'
+import type { Context, MiddlewareHandler } from 'hono'
+import type { AppContext } from '../../types'
+import type { AuthUser } from '../types'
 import { verifyToken } from '../jwt'
 import { AppError } from '../errors'
 
-export interface AuthUser {
-  userId: number
-  username: string
-  name: string
-  role: number
-  visitMode: number // 0=登录, 1=公开/访客
-}
-
-interface AuthBindings {
-  DB: D1Database
-  JWT_SECRET?: string
-}
-
 // ========== 辅助函数 ==========
 
-/** 获取 JWT_SECRET（从 Cloudflare Worker bindings） */
-function getJwtSecret(c: Context): string | undefined {
-  return (c.env as AuthBindings).JWT_SECRET
-}
-
 /** 从 Authorization header 解析 Bearer token 并验证 JWT，返回 payload 或 null */
-async function parseBearerToken(c: Context): Promise<Record<string, unknown> | null> {
+async function parseBearerToken(c: Context<AppContext>): Promise<Record<string, unknown> | null> {
   const authHeader = c.req.header('Authorization')
   if (!authHeader) return null
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
-  const jwtSecret = getJwtSecret(c)
-  return verifyToken(token, jwtSecret)
+  return verifyToken(token, c.env.JWT_SECRET)
 }
 
 /** 从 JWT payload 构建 AuthUser 对象 */
@@ -49,7 +31,7 @@ function makeAuthUser(payload: Record<string, unknown>, visitMode: number): Auth
  * 登录鉴权中间件 - 从 Authorization header 解析 JWT token
  * 认证失败抛出 AppError，由全局错误处理器统一捕获
  */
-export async function authMiddleware(c: Context, next: Next): Promise<void> {
+export const authMiddleware: MiddlewareHandler<AppContext> = async (c, next) => {
   const payload = await parseBearerToken(c)
 
   if (!payload) {
@@ -66,8 +48,8 @@ export async function authMiddleware(c: Context, next: Next): Promise<void> {
 /**
  * 公开模式中间件 - 优先使用登录 token，无 token 时使用公开访问账号
  */
-export async function publicModeMiddleware(c: Context, next: Next): Promise<void> {
-  const db = (c.env as { DB: D1Database }).DB
+export const publicModeMiddleware: MiddlewareHandler<AppContext> = async (c, next) => {
+  const db = c.env.DB
 
   const payload = await parseBearerToken(c)
   if (payload) {
@@ -107,7 +89,7 @@ export async function publicModeMiddleware(c: Context, next: Next): Promise<void
       name: (targetUser.name as string) || '',
       role: targetUser.role as number,
       visitMode: 1,
-    } as AuthUser)
+    })
     await next()
     return
   }
@@ -120,8 +102,8 @@ export async function publicModeMiddleware(c: Context, next: Next): Promise<void
 /**
  * 管理员鉴权中间件 - 需要先通过 authMiddleware 或 publicModeMiddleware
  */
-export async function adminMiddleware(c: Context, next: Next): Promise<void> {
-  const user = c.get('authUser') as AuthUser | undefined
+export const adminMiddleware: MiddlewareHandler<AppContext> = async (c, next) => {
+  const user = c.var.authUser
 
   if (!user || user.role !== 1) {
     throw AppError.forbidden('无权限')
@@ -132,23 +114,7 @@ export async function adminMiddleware(c: Context, next: Next): Promise<void> {
 
 // ========== 工具函数 ==========
 
-/**
- * 获取当前认证用户信息 (从中间件设置的 context)
- */
-export function getAuthUser(c: Context): AuthUser | null {
-  return c.get('authUser') as AuthUser | null
-}
-
-// ========== 可选鉴权中间件 ==========
-
-/**
- * 可选鉴权中间件 - 有 token 就解析并设置 authUser，没有也不报错
- * 用于 /init 等需要同时支持登录和未登录访问的端点
- */
-export async function optionalAuthMiddleware(c: Context, next: Next): Promise<void> {
-  const payload = await parseBearerToken(c)
-  if (payload) {
-    c.set('authUser', makeAuthUser(payload, 0))
-  }
-  await next()
+/** 获取当前认证用户信息 (从中间件设置的 context) */
+export function getAuthUser(c: Context<AppContext>): AuthUser | null {
+  return c.var.authUser ?? null
 }

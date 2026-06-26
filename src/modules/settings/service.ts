@@ -1,5 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import type { SystemSettingRow } from '../../models/types'
+import type { SystemSettingRow, UserRow } from '../shared/types'
 import { queryAll, queryFirst } from '../shared/db'
 
 export class SettingsService {
@@ -50,6 +50,56 @@ export class SettingsService {
     await Promise.all(
       kvList.map(([configName, configValue]) => this.upsertSetting(configName, configValue)),
     )
+  }
+
+  // ========== 公开访问用户 ==========
+
+  /**
+   * 获取公开访问用户信息
+   * @returns 用户信息，未配置时返回 null
+   */
+  async getPublicVisitUser() {
+    const setting = (await this.db
+      .prepare("SELECT config_value FROM system_settings WHERE config_name = 'panel_public_user_id'")
+      .first()) as { config_value: string } | null
+
+    const userId = setting?.config_value ? parseInt(setting.config_value, 10) : null
+    if (!userId) return null
+
+    const user = await queryFirst<UserRow>(
+      this.db,
+      'SELECT id, username, name, head_image, role, status, mail, created_at FROM users WHERE id = ?',
+      userId,
+    )
+
+    if (!user) return null
+    return {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      headImage: user.head_image,
+      status: user.status,
+      role: user.role,
+      mail: user.mail,
+      created_at: user.created_at,
+    }
+  }
+
+  /**
+   * 设置公开访问用户
+   * @param userId 用户 ID，null 表示取消设置
+   * @throws Error 用户不存在
+   */
+  async setPublicVisitUser(userId: number | null) {
+    if (userId === null || userId === undefined) {
+      await this.db.prepare("DELETE FROM system_settings WHERE config_name = 'panel_public_user_id'").run()
+      return
+    }
+
+    const user = await this.db.prepare('SELECT id FROM users WHERE id = ?').bind(userId).first()
+    if (!user) throw new Error('用户不存在')
+
+    await this.upsertSetting('panel_public_user_id', String(userId))
   }
 
   // ========== 私有方法 ==========

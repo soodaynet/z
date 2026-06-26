@@ -25,8 +25,8 @@ router.post('/system/setting/get', validate(settingGetSchema), async (c) => {
  */
 router.post(
   '/system/setting/set',
-  authMiddleware as any,
-  adminMiddleware as any,
+  authMiddleware,
+  adminMiddleware,
   validate(settingSetSchema),
   async (c) => {
     const { configName, configValue } = c.var.validatedBody as { configName: string; configValue?: string }
@@ -42,8 +42,8 @@ router.post(
  */
 router.post(
   '/system/settings/saveAll',
-  authMiddleware as any,
-  adminMiddleware as any,
+  authMiddleware,
+  adminMiddleware,
   validate(saveAllSchema),
   async (c) => {
     const body = c.var.validatedBody as Record<string, string>

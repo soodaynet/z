@@ -1,20 +1,12 @@
 import { post } from '@/utils/request'
-import type { UserConfig, UserFormData, UserListResponse, UserInfo, PublicVisitUserResponse } from './types'
+import type { UserConfig, UserFormData, UserListResponse, PublicVisitUserResponse } from './types'
 
 // ========== 用户配置 API ==========
-export function getUserConfig<T = UserConfig>() {
-  return post<T>({ url: '/panel/userConfig/get' })
-}
-
 export function setUserConfig<T>(config: UserConfig) {
   return post<T>({ url: '/panel/userConfig/set', data: config })
 }
 
 // ========== 用户 API ==========
-export function getAuthInfo<T = UserInfo>() {
-  return post<T>({ url: '/user/getAuthInfo' })
-}
-
 export function updateUserInfo<T>(name: string) {
   return post<T>({ url: '/user/updateInfo', data: { name } })
 }

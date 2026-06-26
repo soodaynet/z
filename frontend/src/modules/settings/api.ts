@@ -1,15 +1,7 @@
 import { post } from '@/utils/request'
-import type { AboutResponse, SiteSettings, SystemSetting } from './types'
+import type { AboutResponse, SiteSettings } from './types'
 
 // ========== 系统设置 API ==========
-export function getSystemSetting<T = SystemSetting>(configName: string) {
-  return post<T>({ url: '/system/setting/get', data: { configName } })
-}
-
-export function setSystemSetting<T>(configName: string, configValue: string) {
-  return post<T>({ url: '/system/setting/set', data: { configName, configValue } })
-}
-
 export function getAbout<T = AboutResponse>() {
   return post<T>({ url: '/about' })
 }

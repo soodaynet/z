@@ -14,7 +14,7 @@ export const groupRouter = new Hono<AppContext>()
  * POST /panel/itemIconGroup/getList
  */
 groupRouter.post('/getList', async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
 
   const service = new PanelService(c.env.DB)
   const list = await service.getGroupList(user.userId)
@@ -27,7 +27,7 @@ groupRouter.post('/getList', async (c) => {
  * POST /panel/itemIconGroup/edit
  */
 groupRouter.post('/edit', validate(iconGroupSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
 
   const body = c.var.validatedBody as GroupEditBody
@@ -41,7 +41,7 @@ groupRouter.post('/edit', validate(iconGroupSchema), async (c) => {
  * POST /panel/itemIconGroup/deletes
  */
 groupRouter.post('/deletes', validate(idsSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
   const { ids } = c.var.validatedBody as { ids: number[] }
 
@@ -55,7 +55,7 @@ groupRouter.post('/deletes', validate(idsSchema), async (c) => {
  * POST /panel/itemIconGroup/saveSort
  */
 groupRouter.post('/saveSort', validate(sortSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
   const { sortItems } = c.var.validatedBody as { sortItems: SortItem[] }
 

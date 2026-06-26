@@ -8,15 +8,14 @@ import { groupRouter } from './group/routes'
 
 export const router = new Hono<AppContext>()
 
-// publicModeMiddleware 使用旧的 Context 类型，临时以 as any 适配 AppContext
-router.use('*', publicModeMiddleware as any)
+router.use('*', publicModeMiddleware)
 
 /**
  * 统一获取全部数据（分组 + 所有图标 + 用户配置）
  * POST /panel/getAllData
  */
 router.post('/getAllData', async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   const service = new PanelService(c.env.DB)
   const result = await service.getAllData(user.userId)
 

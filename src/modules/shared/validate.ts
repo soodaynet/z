@@ -1,13 +1,11 @@
-import type { Context, Next } from 'hono'
+import type { MiddlewareHandler } from 'hono'
 import type { ZodSchema } from 'zod'
+import type { AppContext } from '../types'
 import { fail } from './response'
 
-export type Variables = {
-  validatedBody: unknown
-}
-
-export function validate(schema: ZodSchema) {
-  return async (c: Context<{ Variables: Variables }>, next: Next) => {
+/** 请求体校验中间件工厂：校验失败返回 400，成功时将结果写入 c.var.validatedBody */
+export function validate(schema: ZodSchema): MiddlewareHandler<AppContext> {
+  return async (c, next) => {
     let body: unknown
     try {
       body = await c.req.json()
@@ -23,25 +21,3 @@ export function validate(schema: ZodSchema) {
     await next()
   }
 }
-
-export { loginSchema } from '../../validators/auth'
-export {
-  iconGroupSchema,
-  iconEditSchema,
-  iconAddMultipleSchema,
-  idsSchema,
-  sortSchema,
-  getListByGroupIdSchema,
-  faviconSchema,
-} from '../../validators/panel'
-export {
-  userConfigSchema,
-  userUpdateSchema,
-  userPasswordSchema,
-  userAdminCreateSchema,
-  userAdminUpdateSchema,
-  userDeleteSchema,
-  paginationSchema,
-  publicVisitUserSchema,
-} from '../../validators/user'
-export { settingGetSchema, settingSetSchema, saveAllSchema } from '../../validators/settings'

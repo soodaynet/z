@@ -32,8 +32,7 @@ function updateFavicon(url: string) {
   link.href = url
 }
 
-export { detectFaviconType, updateFavicon, getCachedSiteConfig }
-export { SITE_CACHE_KEY }
+export { updateFavicon, getCachedSiteConfig }
 
 function getCachedSiteConfig(): Panel.SiteConfig {
   try {

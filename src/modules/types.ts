@@ -1,6 +1,7 @@
 import type { Hono } from 'hono'
 import type { MiddlewareHandler } from 'hono'
 import type { D1Database, Fetcher } from '@cloudflare/workers-types'
+import type { AuthUser } from './shared/types'
 
 // 应用环境变量绑定
 export interface AppBindings {
@@ -13,11 +14,10 @@ export interface AppBindings {
 export interface AppContext {
   Bindings: AppBindings
   Variables: {
-    // 认证信息（由 auth 中间件注入）
-    userId?: number
-    username?: string
-    role?: number
-    isPublicMode?: boolean
+    // 认证用户（由 auth 中间件注入）
+    authUser?: AuthUser
+    // 校验后的请求体（由 validate 中间件注入）
+    validatedBody?: unknown
   }
 }
 

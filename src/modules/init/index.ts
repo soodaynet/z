@@ -6,5 +6,3 @@ export const initModule: ModuleDefinition = {
   mountPath: '/',
   router,
 }
-
-export default initModule

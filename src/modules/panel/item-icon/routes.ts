@@ -21,7 +21,7 @@ export const itemIconRouter = new Hono<AppContext>()
  * POST /panel/itemIcon/getListByGroupId
  */
 itemIconRouter.post('/getListByGroupId', validate(getListByGroupIdSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   const { itemIconGroupId } = c.var.validatedBody as { itemIconGroupId?: number }
 
   const service = new PanelService(c.env.DB)
@@ -48,7 +48,7 @@ itemIconRouter.post('/getSiteFavicon', validate(faviconSchema), async (c) => {
  * POST /panel/itemIcon/addMultiple
  */
 itemIconRouter.post('/addMultiple', validate(iconAddMultipleSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
   const items = c.var.validatedBody as IconAddMultipleBody
 
@@ -62,7 +62,7 @@ itemIconRouter.post('/addMultiple', validate(iconAddMultipleSchema), async (c) =
  * POST /panel/itemIcon/edit
  */
 itemIconRouter.post('/edit', validate(iconEditSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
   const body = c.var.validatedBody as IconEditBody
 
@@ -76,7 +76,7 @@ itemIconRouter.post('/edit', validate(iconEditSchema), async (c) => {
  * POST /panel/itemIcon/deletes
  */
 itemIconRouter.post('/deletes', validate(idsSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
   const { ids } = c.var.validatedBody as { ids: number[] }
 
@@ -90,7 +90,7 @@ itemIconRouter.post('/deletes', validate(idsSchema), async (c) => {
  * POST /panel/itemIcon/saveSort
  */
 itemIconRouter.post('/saveSort', validate(sortSchema), async (c) => {
-  const user = getAuthUser(c as any)!
+  const user = getAuthUser(c)!
   if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
   const { sortItems } = c.var.validatedBody as { sortItems: SortItem[] }
 

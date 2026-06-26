@@ -39,23 +39,10 @@ function base64UrlDecode(str: string): Uint8Array {
   return bytes
 }
 
-/** JWT 载荷类型 */
-export interface JwtPayload {
-  userId: number
-  username: string
-  role: number
-  iat?: number
-  exp?: number
-  [key: string]: unknown
-}
-
-/** JWT 签名选项 */
-export interface SignOptions {
-  secret?: string
-  expiresInSeconds?: number
-}
-
-export async function signToken(payload: Record<string, unknown>, options: SignOptions = {}): Promise<string> {
+export async function signToken(
+  payload: Record<string, unknown>,
+  options: { secret?: string; expiresInSeconds?: number } = {},
+): Promise<string> {
   const key = await getKey(options.secret)
   const encoder = new TextEncoder()
 

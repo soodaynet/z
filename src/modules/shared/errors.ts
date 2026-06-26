@@ -42,9 +42,4 @@ export class AppError extends Error {
   static conflict(message: string): AppError {
     return new AppError(409, message, 409)
   }
-
-  /** 500 - 服务器内部错误 */
-  static internal(message = '服务器内部错误'): AppError {
-    return new AppError(500, message, 500)
-  }
 }

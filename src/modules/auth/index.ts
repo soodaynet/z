@@ -6,5 +6,3 @@ export const authModule: ModuleDefinition = {
   mountPath: '/',
   router,
 }
-
-export default authModule

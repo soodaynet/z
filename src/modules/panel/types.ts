@@ -1,4 +1,4 @@
-import type { ItemIconRow, ItemIconGroupRow } from '../../models/types'
+import type { ItemIconRow, ItemIconGroupRow } from '../shared/types'
 
 // 重新导出数据库行类型，方便模块内统一引用
 export type { ItemIconRow, ItemIconGroupRow }
@@ -72,21 +72,6 @@ export interface GroupEditBody {
 export interface SortItem {
   id: number
   sort: number
-}
-
-/** 批量删除请求体 */
-export interface IdsBody {
-  ids: number[]
-}
-
-/** 根据分组 ID 查询图标请求体 */
-export interface GetListByGroupIdBody {
-  itemIconGroupId?: number
-}
-
-/** favicon 请求体 */
-export interface FaviconBody {
-  url: string
 }
 
 // ========== 响应类型 ==========

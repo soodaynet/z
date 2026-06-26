@@ -65,3 +65,14 @@ export interface ApiResponse<T = unknown> {
   msg: string
   data: T
 }
+
+// ========== 认证用户类型 ==========
+
+/** 认证用户信息（由 auth 中间件注入到 c.var.authUser） */
+export interface AuthUser {
+  userId: number
+  username: string
+  name: string
+  role: number
+  visitMode: number // 0=登录, 1=公开/访客
+}

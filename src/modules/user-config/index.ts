@@ -6,5 +6,3 @@ export const userConfigModule: ModuleDefinition = {
   mountPath: '/panel/userConfig',
   router,
 }
-
-export default userConfigModule

@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import type { ApiResponse } from '../../models/types'
+import type { ApiResponse } from './types'
 
 export function ok<T>(c: Context, data: T, status = 200) {
   c.status(status as Parameters<typeof c.status>[0])

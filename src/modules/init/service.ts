@@ -1,5 +1,6 @@
-import type { ServiceFactory } from '../../services/ServiceFactory'
-import type { AuthUser } from '../shared/middleware/auth'
+import type { AuthUser } from '../shared/types'
+import type { PanelService } from '../panel/service'
+import type { SettingsService } from '../settings/service'
 import type { InitAuthInfo, InitResponse } from './types'
 
 /**
@@ -9,12 +10,12 @@ import type { InitAuthInfo, InitResponse } from './types'
  * - 面板数据（分组、图标、面板配置）：PanelService.getAllData
  * - 系统设置：SettingsService.getAll
  * - 认证信息：基于 auth 中间件注入的 user 构建
- *
- * PanelService / SettingsService 尚未迁移至模块化架构，
- * 暂时通过 ServiceFactory 引用旧服务，后续模块重构完成后再切换。
  */
 export class InitService {
-  constructor(private factory: ServiceFactory) {}
+  constructor(
+    private panel: PanelService,
+    private settings: SettingsService,
+  ) {}
 
   /**
    * 聚合返回面板数据、系统设置、认证信息
@@ -22,8 +23,8 @@ export class InitService {
    */
   async aggregate(user: AuthUser | null): Promise<InitResponse> {
     const [panelData, about, authInfo] = await Promise.all([
-      this.factory.panel.getAllData(user?.userId || 0),
-      this.factory.settings.getAll(),
+      this.panel.getAllData(user?.userId || 0),
+      this.settings.getAll(),
       InitService.buildAuthInfo(user),
     ])
 

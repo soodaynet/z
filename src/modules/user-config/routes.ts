@@ -13,8 +13,8 @@ export const router = new Hono<AppContext>()
  * 获取用户配置（公开模式）
  * POST /get
  */
-router.post('/get', publicModeMiddleware as any, async (c) => {
-  const user = getAuthUser(c as any)!
+router.post('/get', publicModeMiddleware, async (c) => {
+  const user = getAuthUser(c)!
   const service = new UserConfigService(c.env.DB)
   const data = await service.get(user.userId)
   return ok(c, data)
@@ -26,14 +26,14 @@ router.post('/get', publicModeMiddleware as any, async (c) => {
  */
 router.post(
   '/set',
-  publicModeMiddleware as any,
+  publicModeMiddleware,
   validate(userConfigSchema),
   async (c) => {
-    const user = getAuthUser(c as any)!
+    const user = getAuthUser(c)!
 
     if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
 
-    const { panel, searchEngine } = c.get('validatedBody') as UserConfigSetBody
+    const { panel, searchEngine } = c.var.validatedBody as UserConfigSetBody
     const panelJson = JSON.stringify(panel || {})
     const searchEngineJson = JSON.stringify(searchEngine || {})
 

@@ -6,5 +6,3 @@ export const settingsModule: ModuleDefinition = {
   mountPath: '/',
   router,
 }
-
-export default settingsModule

@@ -1,5 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import type { UserRow } from '../../models/types'
+import type { UserRow } from '../shared/types'
 import { hashPassword, verifyPassword } from '../shared/password'
 import { queryAll, queryFirst } from '../shared/db'
 import { AppError } from '../shared/errors'

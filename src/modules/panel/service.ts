@@ -11,7 +11,7 @@ import type {
 } from './types'
 import { queryAll, queryFirst } from '../shared/db'
 import { AppError } from '../shared/errors'
-import { isValidUrl } from '../../utils/favicon'
+import { isValidUrl } from '../shared/favicon'
 
 const ICON_SELECT = 'SELECT id, icon_json, title, url, description, open_method, sort, item_icon_group_id, user_id, created_at, updated_at FROM item_icons'
 const GROUP_SELECT = 'SELECT id, icon, title, description, sort, public_visible, user_id, created_at, updated_at FROM item_icon_groups'

@@ -4,7 +4,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required. Set it via `wrangler secret put JWT_SECRET`.'),
 })
 
-export type EnvVars = z.infer<typeof envSchema>
+type EnvVars = z.infer<typeof envSchema>
 
 export function validateEnv(env: Partial<{ JWT_SECRET?: string }>): EnvVars {
   const result = envSchema.safeParse(env)
