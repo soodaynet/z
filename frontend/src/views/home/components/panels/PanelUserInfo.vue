@@ -85,7 +85,7 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
     <!-- 用户信息卡片 -->
     <Card>
       <CardHeader>
@@ -148,7 +148,7 @@ function handleLogout() {
     </Card>
 
     <!-- 偏好设置卡片：主题 + 语言 -->
-    <Card>
+    <Card class="@[600px]:col-span-2">
       <CardHeader>
         <CardTitle>偏好设置</CardTitle>
       </CardHeader>
@@ -200,6 +200,6 @@ function handleLogout() {
     </Card>
 
     <!-- 退出登录 -->
-    <Button variant="destructive" class="w-full" @click="handleLogout">退出登录</Button>
+    <Button variant="destructive" class="w-full @[600px]:col-span-2" @click="handleLogout">退出登录</Button>
   </div>
 </template>

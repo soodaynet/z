@@ -73,7 +73,7 @@ async function handleSave() {
         </div>
       </CardContent>
     </Card>
-    <div class="flex justify-end gap-2 lg:col-span-2">
+    <div class="flex justify-end gap-2 @[600px]:col-span-2">
       <Button @click="handleSave">保存</Button>
     </div>
   </div>
