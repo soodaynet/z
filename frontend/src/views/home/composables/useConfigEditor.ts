@@ -31,7 +31,7 @@ export function useConfigEditor(options: UseConfigEditorOptions) {
     { immediate: true, deep: true },
   )
 
-  async function handleSave() {
+  async function handleSave(): Promise<boolean> {
     const configToSave = { ...localConfig.value }
     try {
       const res = await setUserConfig({ panel: configToSave })
@@ -40,9 +40,12 @@ export function useConfigEditor(options: UseConfigEditorOptions) {
         toast.success('配置已保存')
         onSave?.(configToSave)
         onSaved?.()
+        return true
       }
+      return false
     } catch {
       toast.error('保存失败')
+      return false
     }
   }
 

@@ -62,7 +62,7 @@ function handleDeleteGroup(group: ItemGroup) {
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex gap-2"><Button size="sm" @click="handleAddGroup">添加分组</Button></div>
-    <div class="text-xs text-gray-400">拖拽分组可调整排序</div>
+    <div class="text-xs text-muted-foreground">拖拽分组可调整排序</div>
     <VueDraggable
       v-model="localGroups"
       :animation="200"

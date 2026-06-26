@@ -162,52 +162,55 @@ function handleGroupSaved() {
         />
         <div class="flex-1 min-w-0 overflow-hidden" :style="{ height: layoutHeight }">
           <div class="h-full overflow-auto p-3 sm:p-4">
+            <!-- 面板切换淡入淡出动画 -->
+            <Transition name="panel-fade" mode="out-in">
+              <div :key="activeApp">
+                <!-- ====== 我的信息 ====== -->
+                <PanelUserInfo v-if="activeApp === 'UserInfo'" />
 
-            <!-- ====== 我的信息 ====== -->
-            <PanelUserInfo v-if="activeApp === 'UserInfo'" />
+                <!-- ====== 风格设置 ====== -->
+                <PanelStyleSettings
+                  v-if="activeApp === 'Style'"
+                  :panel-config="panelConfig"
+                  :on-saved="props.onSaved"
+                />
 
-            <!-- ====== 风格设置 ====== -->
-            <PanelStyleSettings
-              v-if="activeApp === 'Style'"
-              :panel-config="panelConfig"
-              :on-saved="props.onSaved"
-            />
+                <!-- ====== 公告设置 ====== -->
+                <PanelAnnounceSettings
+                  v-if="activeApp === 'Announce'"
+                  :panel-config="panelConfig"
+                  :on-saved="props.onSaved"
+                />
 
-            <!-- ====== 公告设置 ====== -->
-            <PanelAnnounceSettings
-              v-if="activeApp === 'Announce'"
-              :panel-config="panelConfig"
-              :on-saved="props.onSaved"
-            />
+                <!-- ====== 分组管理 ====== -->
+                <PanelGroupManage
+                  v-if="activeApp === 'GroupManage'"
+                  :groups="props.groups"
+                  @add-group="openAddGroup"
+                  @edit-group="openEditGroup"
+                  @delete-group="handleDeleteGroup"
+                  @saved="handleGroupSaved"
+                />
 
-            <!-- ====== 分组管理 ====== -->
-            <PanelGroupManage
-              v-if="activeApp === 'GroupManage'"
-              :groups="props.groups"
-              @add-group="openAddGroup"
-              @edit-group="openEditGroup"
-              @delete-group="handleDeleteGroup"
-              @saved="handleGroupSaved"
-            />
+                <!-- ====== 导入导出 ====== -->
+                <PanelImportExport
+                  v-if="activeApp === 'ImportExport'"
+                  :on-saved="props.onSaved"
+                />
 
-            <!-- ====== 导入导出 ====== -->
-            <PanelImportExport
-              v-if="activeApp === 'ImportExport'"
-              :on-saved="props.onSaved"
-            />
+                <!-- ====== 用户管理 ====== -->
+                <div v-if="activeApp === 'Users'" class="flex flex-col gap-4">
+                  <UsersManage />
+                </div>
 
-            <!-- ====== 用户管理 ====== -->
-            <div v-if="activeApp === 'Users'" class="flex flex-col gap-4">
-              <UsersManage />
-            </div>
-
-            <!-- ====== 站点设置 ====== -->
-            <PanelSiteSettings
-              v-if="activeApp === 'SiteSettings'"
-              :site-config="localSiteConfig"
-              @update:site-config="handleSiteConfigUpdate"
-            />
-
+                <!-- ====== 站点设置 ====== -->
+                <PanelSiteSettings
+                  v-if="activeApp === 'SiteSettings'"
+                  :site-config="localSiteConfig"
+                  @update:site-config="handleSiteConfigUpdate"
+                />
+              </div>
+            </Transition>
           </div>
         </div>
       </div>

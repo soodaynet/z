@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
+import { ArrowUp } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
 import { useAuthStore, usePanelState } from '@/store'
@@ -370,10 +371,10 @@ watch(() => authStore.isLoggedIn, (val) => {
         v-if="showBackTop"
         type="button"
         title="返回顶部"
-        class="fixed right-2.5 bottom-2.5 z-40 w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2a2a6b] text-white text-lg shadow-[0_0_10px_2px_rgba(0,0,0,0.2)] hover:bg-[#3a3a3a8c] transition-colors"
+        class="fixed right-4 bottom-4 z-40 flex items-center justify-center rounded-full bg-primary/90 text-primary-foreground shadow-lg backdrop-blur-sm hover:bg-primary hover:scale-110 transition-all duration-200 size-10"
         @click="scrollToTop"
       >
-        ▲
+        <ArrowUp class="size-5" />
       </button>
     </Transition>
 

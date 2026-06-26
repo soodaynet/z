@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { saveSiteSettings } from '@/modules'
 
@@ -33,8 +32,6 @@ async function handleSave() {
     const res = await saveSiteSettings({
       site_title: localSiteConfig.value.site_title || '',
       login_bg_image: localSiteConfig.value.login_bg_image || '',
-      login_blur: String(localSiteConfig.value.login_blur ?? 12),
-      login_mask_opacity: String(localSiteConfig.value.login_mask_opacity ?? 0.15),
       favicon_url: localSiteConfig.value.favicon_url || '',
     })
     if (res.code === 0) {
@@ -66,32 +63,13 @@ async function handleSave() {
     </Card>
     <Card>
       <CardHeader>
-        <CardTitle>登录页设置</CardTitle>
-        <CardDescription>控制登录页卡片背景的模糊和透明度效果</CardDescription>
+        <CardTitle>登录页背景</CardTitle>
+        <CardDescription>设置登录页的背景图片</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
           <Label>登录页背景图片</Label>
           <Input v-model="localSiteConfig.login_bg_image" placeholder="输入图片URL" />
-        </div>
-        <div class="flex flex-col gap-2">
-          <Label>登录卡片背景模糊度: {{ localSiteConfig.login_blur ?? 12 }}</Label>
-          <Slider
-            :model-value="[localSiteConfig.login_blur ?? 12]"
-            @update:model-value="(v: number[] | undefined) => (localSiteConfig.login_blur = v?.[0] ?? 12)"
-            :min="0"
-            :max="40"
-          />
-        </div>
-        <div class="flex flex-col gap-2">
-          <Label>登录卡片遮罩不透明度: {{ localSiteConfig.login_mask_opacity ?? 0.15 }}</Label>
-          <Slider
-            :model-value="[localSiteConfig.login_mask_opacity ?? 0.15]"
-            @update:model-value="(v: number[] | undefined) => (localSiteConfig.login_mask_opacity = v?.[0] ?? 0.15)"
-            :min="0"
-            :max="1"
-            :step="0.05"
-          />
         </div>
       </CardContent>
     </Card>

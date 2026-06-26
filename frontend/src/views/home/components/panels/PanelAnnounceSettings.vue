@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { saveSiteSettings } from '@/modules'
 import { useConfigEditor } from '../../composables/useConfigEditor'
 
 const props = defineProps<{
@@ -17,11 +19,26 @@ const emit = defineEmits<{
   (e: 'save', config: Panel.panelConfig): void
 }>()
 
-const { localConfig, handleSave } = useConfigEditor({
+const { localConfig, handleSave: saveConfig } = useConfigEditor({
   config: toRef(props, 'panelConfig'),
   onSaved: props.onSaved,
   onSave: (config) => emit('save', config),
 })
+
+// 用户配置保存成功后，同步将毛玻璃效果写入系统设置（login_blur / login_mask_opacity），
+// 使登录卡片与公告/侧边栏共用同一组模糊和透明度配置
+async function handleSave() {
+  const ok = await saveConfig()
+  if (!ok) return
+  try {
+    await saveSiteSettings({
+      login_blur: String(localConfig.value.announcementBlur ?? 12),
+      login_mask_opacity: String(localConfig.value.announcementMaskOpacity ?? 0.15),
+    })
+  } catch {
+    toast.error('毛玻璃效果同步失败')
+  }
+}
 </script>
 
 <template>
@@ -80,7 +97,7 @@ const { localConfig, handleSave } = useConfigEditor({
     <Card>
       <CardHeader>
         <CardTitle>毛玻璃效果</CardTitle>
-        <CardDescription>控制侧边栏、公告弹窗、Logo 的模糊和透明度效果</CardDescription>
+        <CardDescription>控制登录卡片、侧边栏、公告弹窗、Logo 的模糊和透明度效果</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">

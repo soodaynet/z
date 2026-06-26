@@ -317,7 +317,7 @@ export class PanelService {
     const domain = parsedUrl.hostname
 
     const iconUrls = [
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `/api/favicon-proxy?domain=${domain}&sz=64`,
       `${parsedUrl.origin}/favicon.ico`,
     ]
 

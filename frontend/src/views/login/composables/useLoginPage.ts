@@ -134,21 +134,7 @@ export function useLoginPage() {
   }
 
   function applyAboutResponse(data: Record<string, string>) {
-    const hasPublic = !!(data.panel_public_user_id || data.default_guest_mode === '1')
-    if (hasPublic) {
-      hasPublicMode.value = true
-      localStorage.setItem(PUBLIC_MODE_KEY, '1')
-      if (!localStorage.getItem(TOKEN_KEY)) {
-        const skipAutoRedirect = sessionStorage.getItem(SKIP_REDIRECT_KEY)
-        if (!skipAutoRedirect) {
-          authStore.setGuestMode(null)
-          router.push('/')
-          return
-        }
-      }
-    } else {
-      localStorage.setItem(PUBLIC_MODE_KEY, '0')
-    }
+    // 1. 先应用站点信息（无论是否公开模式都需要，避免重定向时站点标题/图标/背景缺失）
     if (data.site_title) {
       siteTitle.value = data.site_title
       document.title = data.site_title
@@ -189,6 +175,23 @@ export function useLoginPage() {
         opacity: loginMaskOpacity.value,
       }),
     )
+
+    // 2. 处理公开模式重定向（站点信息已应用后再判断，避免重定向 return 跳过站点信息）
+    const hasPublic = !!(data.panel_public_user_id || data.default_guest_mode === '1')
+    if (hasPublic) {
+      hasPublicMode.value = true
+      localStorage.setItem(PUBLIC_MODE_KEY, '1')
+      if (!localStorage.getItem(TOKEN_KEY)) {
+        const skipAutoRedirect = sessionStorage.getItem(SKIP_REDIRECT_KEY)
+        if (!skipAutoRedirect) {
+          authStore.setGuestMode(null)
+          router.push('/')
+          return
+        }
+      }
+    } else {
+      localStorage.setItem(PUBLIC_MODE_KEY, '0')
+    }
   }
 
   return {

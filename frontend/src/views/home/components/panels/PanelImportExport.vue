@@ -109,7 +109,7 @@ async function importData(data: ExportData) {
 
 <template>
   <div class="flex flex-col gap-4 items-center py-6">
-    <p class="text-sm text-gray-500 mb-4">导出格式为 .sun-panel.json，可跨设备备份和恢复</p>
+    <p class="text-sm text-muted-foreground mb-4">导出格式为 .sun-panel.json，可跨设备备份和恢复</p>
     <input ref="fileInputRef" type="file" accept=".sun-panel.json,.json" class="hidden" @change="handleImportFile" />
     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
       <Button :disabled="importExportLoading" @click="handleExport">导出数据</Button>

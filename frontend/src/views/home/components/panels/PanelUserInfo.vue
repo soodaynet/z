@@ -86,14 +86,14 @@ function handleLogout() {
 <template>
   <div class="flex flex-col gap-4">
     <!-- 用户信息 -->
-    <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded">
+    <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg">
       <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
         {{ authStore.userInfo?.name?.charAt(0) || '?' }}
       </div>
       <div>
         <div class="font-medium">{{ authStore.userInfo?.name }}</div>
-        <div class="text-sm text-gray-500">{{ authStore.userInfo?.username }}</div>
-        <div class="text-xs text-gray-400">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
+        <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
+        <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
       </div>
     </div>
 
@@ -108,7 +108,7 @@ function handleLogout() {
         </div>
       </div>
       <div v-else class="flex items-center gap-2">
-        <span class="text-sm text-gray-500">{{ authStore.userInfo?.name }}</span>
+        <span class="text-sm text-muted-foreground">{{ authStore.userInfo?.name }}</span>
         <Button size="sm" variant="link" class="h-auto p-0" @click="startEditName">修改</Button>
       </div>
     </div>
@@ -126,7 +126,7 @@ function handleLogout() {
         </div>
       </div>
       <div v-else class="flex items-center gap-2">
-        <span class="text-sm text-gray-500">******</span>
+        <span class="text-sm text-muted-foreground">******</span>
         <Button size="sm" variant="link" class="h-auto p-0" @click="startEditPassword">修改</Button>
       </div>
     </div>

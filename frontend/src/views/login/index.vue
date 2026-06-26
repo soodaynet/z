@@ -103,7 +103,7 @@ function handleSkipLogin() {
               autocomplete="current-password"
             />
           </div>
-          <Button type="submit" size="lg" class="w-full touch-manipulation" :disabled="loading">
+          <Button type="submit" size="lg" class="w-full touch-manipulation bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all" :disabled="loading">
             <span v-if="loading" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             登录
           </Button>
