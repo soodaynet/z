@@ -160,7 +160,7 @@ body::-webkit-scrollbar {
 /* 页面切换 */
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity 0.3s var(--ease-out);
+  transition: opacity 0.2s var(--ease-out);
 }
 .page-fade-enter-from,
 .page-fade-leave-to {

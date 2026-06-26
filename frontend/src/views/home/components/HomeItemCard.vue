@@ -36,8 +36,7 @@ watch(
 
 <template>
   <div
-    class="group-item w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover will-change-transform"
-    style="contain: layout style"
+    class="group-item card-contain w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover will-change-transform"
     @click="emit('click', item)"
   >
     <div class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg overflow-hidden flex items-center justify-center mb-1">
@@ -54,7 +53,6 @@ watch(
         decoding="async"
         :fetchpriority="eagerLoad ? 'high' : 'auto'"
         referrerpolicy="no-referrer"
-        style="image-rendering: auto;"
         @error="errored = true"
         @load="loaded = true"
       />
@@ -93,6 +91,10 @@ watch(
 </template>
 
 <style scoped>
+/* 卡片布局隔离：原内联 contain 迁移至此，避免内联样式 */
+.card-contain {
+  contain: layout style;
+}
 .icon-fade {
   transition: opacity 200ms ease-out;
 }
