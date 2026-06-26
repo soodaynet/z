@@ -44,11 +44,21 @@ function buildEagerSet() {
 const showBackTop = ref(false)
 // 滚动百分比（0-100）
 const scrollPercent = ref(0)
+// 滚动节流：rAF 包装，每帧最多执行一次
+let scrollRafId: number | null = null
 function handleScroll() {
-  const scrollTop = window.scrollY
-  const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight
-  showBackTop.value = scrollTop > 300
-  scrollPercent.value = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0
+  if (scrollRafId !== null) return
+  scrollRafId = requestAnimationFrame(() => {
+    const scrollTop = window.scrollY
+    const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight
+    showBackTop.value = scrollTop > 300
+    // 仅整数值变化时更新，减少响应式触发
+    const percent = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0
+    if (percent !== scrollPercent.value) {
+      scrollPercent.value = percent
+    }
+    scrollRafId = null
+  })
 }
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -215,6 +225,7 @@ onMounted(async () => {
 onUnmounted(() => {
   document.documentElement.style.overflow = ''
   window.removeEventListener('scroll', handleScroll)
+  if (scrollRafId !== null) cancelAnimationFrame(scrollRafId)
 })
 
 // 侧边栏展开时锁定/恢复页面滚动
