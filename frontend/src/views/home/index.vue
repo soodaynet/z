@@ -158,22 +158,6 @@ function handleWindowIframeLoaded() {
 // ====== favicon ======
 const { getIconLoading, iconCandidates, getIconByUrl, selectIcon } = useFavicon()
 
-// 点击「获取」：调用 getIconByUrl 并在标题为空时回填，避免覆盖用户已输入内容
-async function handleGetFavicon() {
-  if (!editingItem.value) return
-  const hadTitle = !!editingItem.value.title
-  const result = await getIconByUrl(editingItem.value.url)
-  if (result?.title) {
-    if (!hadTitle) {
-      // 标题为空：回填获取到的标题
-      editingItem.value.title = result.title
-    } else {
-      // 标题已有值：不覆盖，提示用户
-      toast.info('已保留现有标题')
-    }
-  }
-}
-
 async function handleDeleteItem(item: Panel.ItemInfo) {
   if (!item.id) return
   try {
@@ -407,7 +391,7 @@ watch(() => authStore.isLoggedIn, (val) => {
       :get-icon-loading="getIconLoading"
       :icon-candidates="iconCandidates"
       @save="handleSaveItem"
-      @get-favicon="handleGetFavicon"
+      @get-favicon="getIconByUrl(editingItem.url)"
       @select-icon="(url: string) => { if (editingItem.icon) editingItem.icon.src = selectIcon(url) }"
     />
 

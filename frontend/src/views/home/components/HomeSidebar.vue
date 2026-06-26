@@ -34,6 +34,13 @@ watch(expanded, (val) => {
   }
 })
 
+// 抽屉打开时锁定 body 滚动，防止 iOS Safari 背景滚动穿透
+watch(mobileMenuOpen, (open) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = open ? 'hidden' : ''
+  }
+})
+
 function handleResize() {
   checkMobile()
 }
@@ -120,6 +127,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  // 组件卸载时恢复 body 滚动，避免遗留锁定
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = ''
+  }
 })
 </script>
 
@@ -423,15 +434,15 @@ onUnmounted(() => {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 80vw;
+  width: 50vw;
   max-width: 320px;
   z-index: 50;
-  background-color: hsl(var(--background) / 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-color: var(--glass-bg-hover);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   display: flex;
   flex-direction: column;
-  border-right: 1px solid hsl(var(--border) / 0.5);
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 2px 0 16px rgba(0, 0, 0, 0.3);
 }
 .drawer-slide-enter-active {
@@ -452,7 +463,7 @@ onUnmounted(() => {
 .drawer-title {
   font-size: 16px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: white;
 }
 
 .drawer-nav {
@@ -467,13 +478,13 @@ onUnmounted(() => {
   width: 4px;
 }
 .drawer-nav::-webkit-scrollbar-thumb {
-  background: hsl(var(--border) / 0.5);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
 }
 
 .drawer-nav-item {
   padding: 12px 14px;
-  color: hsl(var(--foreground));
+  color: white;
   font-size: 14px;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -483,12 +494,12 @@ onUnmounted(() => {
 }
 .drawer-nav-item:hover,
 .drawer-nav-item:active {
-  background: hsl(var(--muted) / 0.6);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .drawer-divider {
   height: 1px;
-  background: hsl(var(--border) / 0.5);
+  background: rgba(255, 255, 255, 0.15);
   margin: 4px 16px;
 }
 
@@ -497,7 +508,7 @@ onUnmounted(() => {
   padding: 8px 12px 16px;
 }
 .drawer-action-item {
-  color: hsl(var(--muted-foreground));
+  color: rgba(255, 255, 255, 0.7);
   font-size: 13px;
 }
 </style>
