@@ -2,8 +2,15 @@ import { post } from '@/utils/request'
 import type { AboutResponse, SiteSettings } from './types'
 
 // ========== 系统设置 API ==========
+/**
+ * 获取站点配置（公开接口）
+ * 登录页调用时需跳过 CDN/浏览器缓存，确保获取最新站点信息
+ * （site_title/favicon_url/login_bg_image 等），避免公开访问开关
+ * 变更后短时间内仍命中旧缓存导致站点信息无法正常显示。
+ * 加 _t 时间戳使每次请求 URL 唯一，绕过 HTTP 缓存。
+ */
 export function getAbout<T = AboutResponse>() {
-  return post<T>({ url: '/about' })
+  return post<T>({ url: `/about?_t=${Date.now()}` })
 }
 
 // ========== 站点全局设置 API ==========

@@ -65,8 +65,8 @@ app.get('/api/favicon-proxy', async (c) => {
     const contentType = resp.headers.get('content-type') || 'image/x-icon'
     const body = await resp.arrayBuffer()
     c.header('Content-Type', contentType)
-    c.header('Cache-Control', 'public, max-age=86400')
-    c.header('CDN-Cache-Control', 'public, max-age=86400')
+    c.header('Cache-Control', 'public, max-age=2592000, immutable')
+    c.header('CDN-Cache-Control', 'public, max-age=2592000, immutable')
     return c.body(body)
   } catch {
     return c.json({ code: 502, msg: '上游服务不可用', data: null }, 502)

@@ -63,6 +63,18 @@ function handleSettings() {
   expanded.value = false
 }
 
+// 设置面板 chunk 预取（去重，悬停/聚焦时触发，点击时几乎立即可用）
+let settingsChunkPrefetched = false
+function prefetchSettingsChunk() {
+  if (settingsChunkPrefetched) return
+  settingsChunkPrefetched = true
+  // 预取 HomeAppStarter chunk
+  import('./HomeAppStarter.vue').catch(() => {
+    // 预取失败则重置标记，允许下次重试
+    settingsChunkPrefetched = false
+  })
+}
+
 function handleLogout() {
   authStore.removeToken()
   router.push('/login')
@@ -104,7 +116,12 @@ onUnmounted(() => {
         <!-- 底部操作按钮（始终可见） -->
         <div class="sidebar-actions">
           <template v-if="authStore.isLoggedIn">
-            <div class="nav-item sidebar-action-item" @click="handleSettings">
+            <div
+              class="nav-item sidebar-action-item"
+              @click="handleSettings"
+              @mouseenter="prefetchSettingsChunk"
+              @focus="prefetchSettingsChunk"
+            >
               <div class="nav-slip" />
               <span class="nav-title">设 置</span>
             </div>
@@ -146,7 +163,12 @@ onUnmounted(() => {
       <!-- 移动端操作按钮 -->
       <div class="mobile-divider" />
       <template v-if="authStore.isLoggedIn">
-        <div class="mobile-nav-item mobile-action-item" @click="handleSettings">设 置</div>
+        <div
+          class="mobile-nav-item mobile-action-item"
+          @click="handleSettings"
+          @mouseenter="prefetchSettingsChunk"
+          @focus="prefetchSettingsChunk"
+        >设 置</div>
         <div class="mobile-nav-item mobile-action-item" @click="handleLogout">退出登录</div>
       </template>
       <template v-else>

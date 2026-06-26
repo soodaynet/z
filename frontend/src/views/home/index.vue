@@ -42,8 +42,13 @@ function buildEagerSet() {
 
 // 返回顶部按钮显示状态
 const showBackTop = ref(false)
+// 滚动百分比（0-100）
+const scrollPercent = ref(0)
 function handleScroll() {
-  showBackTop.value = window.scrollY > 300
+  const scrollTop = window.scrollY
+  const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight
+  showBackTop.value = scrollTop > 300
+  scrollPercent.value = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0
 }
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -275,13 +280,21 @@ watch(() => authStore.isLoggedIn, (val) => {
     <!-- 主内容区域 -->
     <div class="relative z-10 mx-auto flex-1 w-full" :style="containerStyle">
 
-      <!-- 加载指示器（不阻塞内容渲染） -->
+      <!-- 加载骨架屏（不阻塞内容渲染） -->
       <Transition name="loader-fade">
-        <div v-if="loading" class="flex items-center justify-center py-6">
-          <div class="loader-ring">
-            <div class="loader-ring-inner" />
+        <div v-if="loading" class="space-y-8">
+          <div v-for="i in 3" :key="`skeleton-group-${i}`" class="space-y-3">
+            <!-- 分组标题占位 -->
+            <div class="h-4 w-24 bg-white/10 rounded animate-pulse"></div>
+            <!-- 6 个图标占位方块 -->
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              <div
+                v-for="j in 6"
+                :key="`skeleton-item-${i}-${j}`"
+                class="w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 rounded-xl bg-white/10 animate-pulse"
+              ></div>
+            </div>
           </div>
-          <span class="ml-3 text-white/60 text-sm">加载中...</span>
         </div>
       </Transition>
 
@@ -370,11 +383,12 @@ watch(() => authStore.isLoggedIn, (val) => {
       <button
         v-if="showBackTop"
         type="button"
-        title="返回顶部"
-        class="back-top-btn fixed right-4 bottom-4 z-40 flex items-center justify-center rounded-full size-11 shadow-lg hover:scale-110 transition-all duration-200"
+        :title="`返回顶部 (${scrollPercent}%)`"
+        class="back-top-btn fixed right-4 bottom-4 z-40 flex flex-col items-center justify-center rounded-full size-12 shadow-lg hover:scale-110 transition-all duration-200"
         @click="scrollToTop"
       >
-        <ArrowUp class="size-5" />
+        <ArrowUp class="size-4" />
+        <span class="text-[10px] font-medium leading-none mt-0.5">{{ scrollPercent }}%</span>
       </button>
     </Transition>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
+import { preconnectOrigin } from '@/utils/preconnect'
 
 const props = defineProps<{
   item: Panel.ItemInfo
@@ -17,8 +18,19 @@ const emit = defineEmits<{
 }>()
 
 const errored = ref(false)
+// 图标是否加载完成，用于淡入过渡
+const loaded = ref(false)
 
 const realIconSrc = computed(() => props.item.icon?.src || '')
+
+// 外部域图标资源预连接，节省 TLS/连接时间；同源/重复 origin 自动去重
+watch(
+  realIconSrc,
+  (src) => {
+    if (src) preconnectOrigin(src)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -32,7 +44,8 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
         v-if="item.icon?.src"
         v-show="!errored"
         :src="realIconSrc"
-        class="w-full h-full object-cover rounded-lg"
+        class="icon-fade w-full h-full object-cover rounded-lg"
+        :class="{ 'opacity-0': !loaded && !errored, 'opacity-100': loaded }"
         :alt="item.title"
         width="40"
         height="40"
@@ -42,6 +55,7 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
         referrerpolicy="no-referrer"
         style="image-rendering: auto;"
         @error="errored = true"
+        @load="loaded = true"
       />
       <div
         v-if="!item.icon?.src || errored"
@@ -72,3 +86,9 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
     </div>
   </div>
 </template>
+
+<style scoped>
+.icon-fade {
+  transition: opacity 200ms ease-out;
+}
+</style>

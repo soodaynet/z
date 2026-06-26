@@ -6,6 +6,14 @@
 
 ---
 
+## ⚠️ 关键强调点（开工前必读）
+
+1. **D1 唯一持久化存储，不得引入 KV/R2/其他数据库**。D1 binding 名为 `DB`，库名 `sun-panel-db`。session/缓存等临时数据可用内存或 `c.var` 上下文，但不得持久化到非 D1 存储。
+2. **插件式模块化架构，每个模块高内聚低耦合，模块间不得直接 import 内部实现**。模块间通信只能通过共享类型、`src/modules/shared/`、或 HTTP API。
+3. **前端包名是 `sun-panel-frontend`，`pnpm --filter frontend` 会失败**。必须用 `pnpm --filter sun-panel-frontend` 或 `cd frontend && pnpm run ...`。
+
+---
+
 ## 1. AI Agent 协作总则
 
 - **先读 spec**：开始任务前先读 `/workspace/.trae/specs/` 下相关 spec 文档，理解上下文与已定方案。
@@ -13,7 +21,7 @@
 - **不跨层修改**：前端不直接调用后端 `service.ts`，后端不直接操作前端 store。
 - **最小化修改**：只改完成任务所必需的文件，不做无关重构、不"顺手"优化。
 - **保留向后兼容**：旧 `src/routes/`、`src/services/`、`src/validators/`、`src/utils/`、`src/middleware/`、`src/models/` 与 `frontend/src/api/` 目录暂保留，**不得**主动删除。
-- **验证后提交**：提交前必须运行 `pnpm run typecheck` + `pnpm run lint` + `pnpm --filter frontend run build` 全部通过。
+- **验证后提交**：提交前必须运行 `pnpm run typecheck` + `pnpm run lint` + `pnpm --filter sun-panel-frontend run build` 全部通过。
 - **中文注释**：标识符用英文，注释用中文。
 - **不创建文档**：除非用户明确要求，**不得**主动创建 `.md` 文档。
 - **不修改生成代码**：`frontend/src/components/ui/**` 是 shadcn-vue 生成代码，**不得**修改其源码。
@@ -25,7 +33,7 @@
 
 ### 后端模块自包含
 
-每个后端模块目录 `src/modules/<name>/` 必须包含以下文件，且不依赖其他模块内部实现：
+每个后端模块目录 `src/modules/<name>/` 必须包含以下 5 个文件，且不依赖其他模块内部实现：
 
 ```
 src/modules/<name>/
@@ -39,6 +47,7 @@ src/modules/<name>/
 - 模块通过 `registry.register(module)` 注册，在 `src/index.ts` 中挂载。
 - 新增模块**必须**在 `src/index.ts` 中 import 并 `registry.register()`。
 - 模块间**不得**直接 import 其他模块的 `service.ts` / `validator.ts` / `routes.ts`。
+- **AppContext.Variables 实际为 `{ authUser?, validatedBody? }`**（不是 userId/username/role 等）。中间件应往 `c.set('authUser', ...)` 或 `c.set('validatedBody', ...)` 写入，下游通过 `c.var.authUser` / `c.var.validatedBody` 读取。
 
 ### 前端模块自包含
 
@@ -57,7 +66,7 @@ frontend/src/modules/<name>/
 
 - `frontend/src/components/ui/**` 是 shadcn-vue 生成代码（badge、button、card、dialog、form、input、select、table 等）。
 - **不得**修改这些生成组件的源码，只能从外部组合使用。
-- 新增基础组件用 `pnpm --filter frontend dlx shadcn-vue@latest add <name>` 生成。
+- 新增基础组件用 `pnpm --filter sun-panel-frontend dlx shadcn-vue@latest add <name>` 生成。
 
 ### 跨层修改需谨慎
 
@@ -128,9 +137,9 @@ refactor(frontend): 将用户管理表单迁移到 shadcn-vue Form
 PR 合并前**必须**全部通过：
 
 - [ ] `pnpm run typecheck`（后端 tsc）通过
-- [ ] `pnpm --filter frontend run typecheck`（前端 vue-tsc）通过
+- [ ] `pnpm --filter sun-panel-frontend run typecheck`（前端 vue-tsc）通过
 - [ ] `pnpm run lint` 通过
-- [ ] `pnpm --filter frontend run build` 构建成功
+- [ ] `pnpm --filter sun-panel-frontend run build` 构建成功
 - [ ] 无 naive-ui 残留引用：`grep -r "naive-ui" frontend/src` 无输出
 - [ ] 无新增内联样式（`style="..."`），动态 `:style` 绑定除外
 - [ ] 无硬编码密钥、密码、ID
@@ -148,8 +157,8 @@ PR 合并前**必须**全部通过：
 
 - **Node 24 兼容**：仅升级到 Node 24 兼容的最新稳定版。
 - **依赖位置**：后端依赖写在根 `package.json`，前端依赖写在 `frontend/package.json`。
-- **包管理器**：统一使用 `pnpm@10.15.1`（workspace monorepo）。
-- **不引入新 UI 库**：已使用 shadcn-vue + Reka UI + Tailwind CSS 4。
+- **包管理器**：统一使用 `pnpm@10.15.1`（workspace monorepo，根 + `frontend/`）。
+- **不引入新 UI 库**：已使用 shadcn-vue + Reka UI v2 + Tailwind CSS 4。
 - **禁止引入**：`naive-ui`、`dompurify`、`unplugin-vue-components`。
 - **升级前验证基线**：升级依赖前先运行 `pnpm run typecheck && pnpm run lint` 确保基线通过。
 - **新增依赖需理由**：新增依赖**必须**在 PR 说明中给出明确理由。
@@ -163,7 +172,7 @@ PR 合并前**必须**全部通过：
 - **无 SSRF**：**不得**添加图片代理、URL 抓取等会发起服务端外部请求的功能。如需外部图片，前端直连目标 URL 或公开 favicon 服务。
 - **无公开注册**：用户仅由管理员后台通过 `/panel/users/create` 创建，**不得**恢复 `/register` 接口。
 - **JWT 必填**：未配置 `JWT_SECRET` 时 Worker 启动失败（`src/modules/shared/env.ts` 校验），**不得**添加默认回退值。
-- **D1 唯一存储**：所有持久化数据存 D1，**不得**引入其他数据库或 KV。
+- **D1 唯一存储**：所有持久化数据存 Cloudflare D1（binding 名 `DB`，库名 `sun-panel-db`），**不得**引入 KV/R2/其他数据库。session/缓存等临时数据可用内存或 `c.var` 上下文，但不得持久化到非 D1 存储。
 - **输入校验**：所有 API 入参用 Zod schema 校验（见各模块 `validator.ts`），**不得**直接信任请求体。
 - **认证中间件**：受保护接口必须挂载 `authMiddleware`，管理员接口加 `adminMiddleware`（来自 `src/modules/shared/middleware/auth.ts`）。
 - **CSRF 防护**：全局 `csrfMiddleware` 已启用（`src/index.ts`），**不得**绕过。
@@ -211,11 +220,12 @@ pnpm run typecheck           # 后端类型检查
 pnpm run lint                # ESLint
 pnpm run format              # Prettier 格式化
 
-# 前端开发
-pnpm --filter frontend run dev          # Vite dev（端口 3000）
-pnpm --filter frontend run typecheck    # vue-tsc 类型检查
-pnpm --filter frontend run build        # 构建（含类型检查）
+# 前端开发（注意：前端包名是 sun-panel-frontend，pnpm --filter frontend 会失败）
+pnpm --filter sun-panel-frontend run dev          # Vite dev（端口 3000）
+pnpm --filter sun-panel-frontend run typecheck    # vue-tsc 类型检查
+pnpm --filter sun-panel-frontend run build        # 构建（含类型检查）
+# 或 cd frontend && pnpm run dev/typecheck/build
 
 # 提交前全套验证
-pnpm run typecheck && pnpm --filter frontend run typecheck && pnpm run lint && pnpm --filter frontend run build
+pnpm run typecheck && pnpm --filter sun-panel-frontend run typecheck && pnpm run lint && pnpm --filter sun-panel-frontend run build
 ```

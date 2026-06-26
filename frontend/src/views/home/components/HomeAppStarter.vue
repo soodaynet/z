@@ -143,7 +143,7 @@ function handleGroupSaved() {
 
 <template>
   <Dialog v-model:open="show">
-    <DialogContent class="w-[95vw] sm:w-[700px] md:w-[900px] max-w-[900px] p-0">
+    <DialogContent class="w-[95vw] sm:w-[720px] md:w-[1000px] lg:w-[1200px] max-w-[1280px] p-0">
       <DialogHeader class="px-4 py-3 border-b">
         <DialogTitle class="flex items-center select-none cursor-pointer">
           <span class="text-lg mr-2" @click="collapsed = !collapsed">{{ collapsed ? '▶' : '◀' }}</span>
