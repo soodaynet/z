@@ -163,9 +163,14 @@ async function handleGetFavicon() {
   if (!editingItem.value) return
   const hadTitle = !!editingItem.value.title
   const result = await getIconByUrl(editingItem.value.url)
-  // 仅当标题为空时回填，避免覆盖用户输入
-  if (result?.title && !hadTitle) {
-    editingItem.value.title = result.title
+  if (result?.title) {
+    if (!hadTitle) {
+      // 标题为空：回填获取到的标题
+      editingItem.value.title = result.title
+    } else {
+      // 标题已有值：不覆盖，提示用户
+      toast.info('已保留现有标题')
+    }
   }
 }
 
