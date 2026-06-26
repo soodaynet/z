@@ -28,7 +28,15 @@ app.onError((err, c) => {
     )
   }
   logger.error('App', 'Unhandled error', err)
-  return c.json({ code: 500, msg: '服务器内部错误', data: null }, 500)
+  const msg = err instanceof Error ? err.message : '服务器内部错误'
+  return c.json({ code: 500, msg, data: null }, 500)
+})
+
+// ========== 健康检查（不依赖 DB / 环境变量，始终可用）==========
+app.get('/api/health', (c) => {
+  c.header('Cache-Control', 'no-cache, no-store, must-revalidate')
+  c.header('CDN-Cache-Control', 'no-cache')
+  return c.json({ code: 0, msg: 'ok', data: { status: 'running', time: new Date().toISOString() } })
 })
 
 // ========== 数据库自动初始化 ==========
@@ -65,13 +73,6 @@ app.use('*', corsMiddleware)
 app.use('*', csrfMiddleware)
 app.use('*', securityHeadersMiddleware)
 app.use('*', bodyLimitMiddleware)
-
-// ========== 健康检查 ==========
-app.get('/api/health', (c) => {
-  c.header('Cache-Control', 'no-cache, no-store, must-revalidate')
-  c.header('CDN-Cache-Control', 'no-cache')
-  return c.json({ code: 0, msg: 'ok', data: { status: 'running', time: new Date().toISOString() } })
-})
 
 // ========== 模块注册表 ==========
 const registry = new ModuleRegistry()
