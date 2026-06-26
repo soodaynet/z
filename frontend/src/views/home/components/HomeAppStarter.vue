@@ -84,9 +84,7 @@ function handleResize() {
   if (isSmallScreen.value) collapsed.value = true
 }
 
-const layoutHeight = computed(() => {
-  return isSmallScreen.value ? 'min(80vh, 450px)' : '500px'
-})
+const layoutHeight = computed(() => 'min(85vh, 560px)')
 
 onMounted(() => {
   window.addEventListener('resize', handleResize, { passive: true })

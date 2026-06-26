@@ -114,6 +114,16 @@ body::-webkit-scrollbar {
   background-color: rgba(255, 255, 255, var(--ann-opacity, 0.15)) !important;
 }
 
+/* ========== Toaster 玻璃效果（与公告设置同步） ========== */
+[data-slot="toaster"] li {
+  background-color: rgba(255, 255, 255, var(--ann-opacity, 0.15)) !important;
+  backdrop-filter: blur(var(--ann-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--ann-blur, 12px));
+}
+.dark [data-slot="toaster"] li {
+  background-color: rgba(20, 20, 23, var(--ann-opacity, 0.15)) !important;
+}
+
 /* ========== 加载动画 ========== */
 .loader-overlay {
   position: absolute;

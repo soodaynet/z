@@ -371,7 +371,7 @@ watch(() => authStore.isLoggedIn, (val) => {
         v-if="showBackTop"
         type="button"
         title="返回顶部"
-        class="fixed right-4 bottom-4 z-40 flex items-center justify-center rounded-full bg-primary/90 text-primary-foreground shadow-lg backdrop-blur-sm hover:bg-primary hover:scale-110 transition-all duration-200 size-10"
+        class="back-top-btn fixed right-4 bottom-4 z-40 flex items-center justify-center rounded-full size-11 shadow-lg hover:scale-110 transition-all duration-200"
         @click="scrollToTop"
       >
         <ArrowUp class="size-5" />
@@ -410,6 +410,19 @@ watch(() => authStore.isLoggedIn, (val) => {
   </div>
 </template>
 
+<style scoped>
+/* 返回顶部按钮：玻璃质感，与公告设置同步 */
+.back-top-btn {
+  background-color: rgba(255, 255, 255, var(--ann-opacity, 0.15));
+  backdrop-filter: blur(var(--ann-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--ann-blur, 12px));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  color: #fff;
+}
+.back-top-btn:hover {
+  background-color: rgba(255, 255, 255, calc(var(--ann-opacity, 0.15) + 0.1));
+}
+</style>
 
 
 

@@ -18,7 +18,7 @@ const username = ref('')
 const password = ref('')
 const loading = ref(false)
 
-const { hasPublicMode, siteTitle, pageLoading, loginPageStyle, loginCardStyle, bgImageReady, initLoginPage } = useLoginPage()
+const { hasPublicMode, siteTitle, pageLoading, loginPageStyle, loginCardStyle, loginButtonStyle, bgImageReady, initLoginPage } = useLoginPage()
 
 onMounted(() => {
   initLoginPage()
@@ -103,7 +103,13 @@ function handleSkipLogin() {
               autocomplete="current-password"
             />
           </div>
-          <Button type="submit" size="lg" class="w-full touch-manipulation bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all" :disabled="loading">
+          <Button
+            type="submit"
+            size="lg"
+            class="login-btn w-full touch-manipulation text-white shadow-lg shadow-[#4a90d9]/30 transition-all hover:brightness-110"
+            :style="loginButtonStyle"
+            :disabled="loading"
+          >
             <span v-if="loading" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             登录
           </Button>
@@ -138,5 +144,14 @@ function handleSkipLogin() {
   border: 1px solid var(--glass-border) !important;
   box-shadow: 0 0 30px rgba(74, 144, 217, 0.15), 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.3s ease;
+}
+
+.login-card :deep(.login-btn) {
+  background-color: var(--btn-bg, rgba(74, 144, 217, 0.82)) !important;
+  backdrop-filter: blur(var(--btn-blur, 14.4px));
+  -webkit-backdrop-filter: blur(var(--btn-blur, 14.4px));
+}
+.login-card :deep(.login-btn):disabled {
+  opacity: 0.7;
 }
 </style>
