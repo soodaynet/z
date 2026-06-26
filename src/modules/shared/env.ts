@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 const envSchema = z.object({
-  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required. Set it via `wrangler secret put JWT_SECRET`.'),
+  JWT_SECRET: z.string().min(1, 'JWT_SECRET 未配置，请通过 wrangler secret put JWT_SECRET 设置。'),
 })
 
 type EnvVars = z.infer<typeof envSchema>

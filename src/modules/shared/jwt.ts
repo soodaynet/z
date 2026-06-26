@@ -8,7 +8,7 @@
 
 function getSecretKey(customSecret?: string): string {
   if (!customSecret) {
-    throw new Error('JWT_SECRET is required. Set it via `wrangler secret put JWT_SECRET`.')
+    throw new Error('JWT_SECRET 未配置，请通过 wrangler secret put JWT_SECRET 设置。')
   }
   return customSecret
 }

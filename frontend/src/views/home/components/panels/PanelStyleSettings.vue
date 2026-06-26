@@ -2,6 +2,11 @@
 import { toRef } from 'vue'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Slider } from '@/components/ui/slider'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useConfigEditor } from '../../composables/useConfigEditor'
 
 const props = defineProps<{
@@ -29,77 +34,68 @@ function handleReset() {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div>
-      <label class="block text-sm mb-1 font-medium">壁纸地址</label>
-      <input
-        :value="localConfig.backgroundImageSrc"
-        @input="(e: Event) => (localConfig.backgroundImageSrc = (e.target as HTMLInputElement).value)"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base mb-2"
-        placeholder="输入图片URL"
-      />
-      
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium">模糊度: {{ localConfig.backgroundBlur || 0 }}</label>
-      <input
-        :value="localConfig.backgroundBlur"
-        @input="(e: Event) => (localConfig.backgroundBlur = Number((e.target as HTMLInputElement).value))"
-        type="range"
-        min="0"
-        max="50"
-        class="w-full"
-      />
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium">遮罩不透明度: {{ localConfig.backgroundMaskNumber ?? 0.3 }}</label>
-      <input
-        :value="localConfig.backgroundMaskNumber"
-        @input="(e: Event) => (localConfig.backgroundMaskNumber = Number((e.target as HTMLInputElement).value))"
-        type="range"
-        min="0"
-        max="1"
-        step="0.1"
-        class="w-full"
-      />
-    </div>
-    <div class="border-t pt-3">
-      <label class="block text-sm mb-1 font-medium">自定义页脚 (支持 HTML)</label>
-      <textarea
-        :value="localConfig.footerHtml"
-        @input="(e: Event) => (localConfig.footerHtml = (e.target as HTMLInputElement).value)"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-        rows="3"
-        placeholder="<p>&copy; 2024 Sun-Panel</p>"
-      />
-    </div>
-    <div class="border-t pt-2">
-      <label class="block text-sm mb-1 font-medium">最大宽度</label>
-      <input
-        :value="localConfig.maxWidth"
-        @input="(e: Event) => (localConfig.maxWidth = Number((e.target as HTMLInputElement).value))"
-        type="number"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-      />
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium">上边距</label>
-      <input
-        :value="localConfig.marginTop"
-        @input="(e: Event) => (localConfig.marginTop = Number((e.target as HTMLInputElement).value))"
-        type="number"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-      />
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium">下边距</label>
-      <input
-        :value="localConfig.marginBottom"
-        @input="(e: Event) => (localConfig.marginBottom = Number((e.target as HTMLInputElement).value))"
-        type="number"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-      />
-    </div>
-    <div class="flex justify-end gap-2 pt-2 border-t">
+    <Card>
+      <CardHeader>
+        <CardTitle>壁纸设置</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <Label>壁纸地址</Label>
+          <Input v-model="localConfig.backgroundImageSrc" placeholder="输入图片URL" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>模糊度: {{ localConfig.backgroundBlur || 0 }}</Label>
+          <Slider
+            :model-value="[localConfig.backgroundBlur || 0]"
+            @update:model-value="(v: number[] | undefined) => (localConfig.backgroundBlur = v?.[0] ?? 0)"
+            :min="0"
+            :max="50"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>遮罩不透明度: {{ localConfig.backgroundMaskNumber ?? 0.3 }}</Label>
+          <Slider
+            :model-value="[localConfig.backgroundMaskNumber ?? 0.3]"
+            @update:model-value="(v: number[] | undefined) => (localConfig.backgroundMaskNumber = v?.[0] ?? 0.3)"
+            :min="0"
+            :max="1"
+            :step="0.1"
+          />
+        </div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader>
+        <CardTitle>布局设置</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <Label>最大宽度</Label>
+          <Input v-model="localConfig.maxWidth" type="number" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>上边距</Label>
+          <Input v-model="localConfig.marginTop" type="number" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>下边距</Label>
+          <Input v-model="localConfig.marginBottom" type="number" />
+        </div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader>
+        <CardTitle>页脚设置</CardTitle>
+        <CardDescription>支持 HTML 标签</CardDescription>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <Label>自定义页脚</Label>
+          <Textarea v-model="localConfig.footerHtml" rows="3" placeholder="<p>&copy; 2024 Sun-Panel</p>" />
+        </div>
+      </CardContent>
+    </Card>
+    <div class="flex justify-end gap-2">
       <Button variant="outline" @click="handleReset">重置</Button>
       <Button @click="handleSave">保存</Button>
     </div>

@@ -151,10 +151,6 @@ onMounted(async () => {
 
 <template>
   <div class="overflow-auto pt-2">
-    <!-- 提示框 -->
-    <div class="rounded-md bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-      在此管理用户账号，可以添加、编辑、删除账号，以及设置某个用户为公开访问用户（访客模式）。
-    </div>
 
     <div class="my-3">
       <Button size="sm" @click="handleAdd">添加用户</Button>

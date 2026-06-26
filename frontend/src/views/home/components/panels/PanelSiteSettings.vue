@@ -2,6 +2,10 @@
 import { ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { saveSiteSettings } from '@/modules'
 
 const props = defineProps<{
@@ -45,60 +49,53 @@ async function handleSave() {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div>
-      <label class="block text-sm mb-1 font-medium">站点标题 (浏览器标签页)</label>
-      <input
-        :value="localSiteConfig.site_title"
-        @input="(e: Event) => (localSiteConfig.site_title = (e.target as HTMLInputElement).value)"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-        placeholder="站点标题"
-      />
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium">网站图标 URL (favicon)</label>
-      <input
-        :value="localSiteConfig.favicon_url"
-        @input="(e: Event) => (localSiteConfig.favicon_url = (e.target as HTMLInputElement).value)"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-        placeholder="输入图标URL，显示在浏览器标签页上"
-      />
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium">登录页背景图片</label>
-      <input
-        :value="localSiteConfig.login_bg_image"
-        @input="(e: Event) => (localSiteConfig.login_bg_image = (e.target as HTMLInputElement).value)"
-        class="w-full border rounded px-3 py-2 sm:text-sm text-base"
-        placeholder="输入图片URL"
-      />
-    </div>
-    <div class="border-t pt-3">
-      <label class="block text-sm mb-1 font-medium">登录卡片背景模糊度: {{ localSiteConfig.login_blur ?? 12 }}</label>
-      <input
-        :value="localSiteConfig.login_blur"
-        @input="(e: Event) => (localSiteConfig.login_blur = Number((e.target as HTMLInputElement).value))"
-        type="range"
-        min="0"
-        max="40"
-        class="w-full"
-      />
-    </div>
-    <div>
-      <label class="block text-sm mb-1 font-medium"
-        >登录卡片遮罩不透明度: {{ localSiteConfig.login_mask_opacity ?? 0.15 }}</label
-      >
-      <input
-        :value="localSiteConfig.login_mask_opacity"
-        @input="(e: Event) => (localSiteConfig.login_mask_opacity = Number((e.target as HTMLInputElement).value))"
-        type="range"
-        min="0"
-        max="1"
-        step="0.05"
-        class="w-full"
-      />
-    </div>
-    <p class="text-xs text-gray-400">控制登录页卡片背景的模糊和透明度效果</p>
-    <div class="flex justify-end gap-2 pt-2 border-t">
+    <Card>
+      <CardHeader>
+        <CardTitle>站点信息</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <Label>站点标题 (浏览器标签页)</Label>
+          <Input v-model="localSiteConfig.site_title" placeholder="站点标题" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>网站图标 URL (favicon)</Label>
+          <Input v-model="localSiteConfig.favicon_url" placeholder="输入图标URL，显示在浏览器标签页上" />
+        </div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader>
+        <CardTitle>登录页设置</CardTitle>
+        <CardDescription>控制登录页卡片背景的模糊和透明度效果</CardDescription>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <Label>登录页背景图片</Label>
+          <Input v-model="localSiteConfig.login_bg_image" placeholder="输入图片URL" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>登录卡片背景模糊度: {{ localSiteConfig.login_blur ?? 12 }}</Label>
+          <Slider
+            :model-value="[localSiteConfig.login_blur ?? 12]"
+            @update:model-value="(v: number[] | undefined) => (localSiteConfig.login_blur = v?.[0] ?? 12)"
+            :min="0"
+            :max="40"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <Label>登录卡片遮罩不透明度: {{ localSiteConfig.login_mask_opacity ?? 0.15 }}</Label>
+          <Slider
+            :model-value="[localSiteConfig.login_mask_opacity ?? 0.15]"
+            @update:model-value="(v: number[] | undefined) => (localSiteConfig.login_mask_opacity = v?.[0] ?? 0.15)"
+            :min="0"
+            :max="1"
+            :step="0.05"
+          />
+        </div>
+      </CardContent>
+    </Card>
+    <div class="flex justify-end gap-2">
       <Button @click="handleSave">保存</Button>
     </div>
   </div>
