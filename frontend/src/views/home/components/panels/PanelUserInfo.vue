@@ -152,7 +152,7 @@ function handleLogout() {
       <CardHeader>
         <CardTitle>偏好设置</CardTitle>
       </CardHeader>
-      <CardContent class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <CardContent class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
         <!-- 主题 -->
         <div>
           <label class="block text-sm mb-1 font-medium">主题</label>

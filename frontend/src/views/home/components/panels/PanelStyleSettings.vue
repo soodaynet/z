@@ -33,7 +33,7 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
     <Card>
       <CardHeader>
         <CardTitle>壁纸设置</CardTitle>

@@ -158,7 +158,7 @@ function handleGroupSaved() {
           v-model:collapsed="collapsed"
           :is-small-screen="isSmallScreen"
         />
-        <div class="flex-1 min-w-0 overflow-hidden" :style="{ height: layoutHeight }">
+        <div class="flex-1 min-w-0 overflow-hidden @container" :style="{ height: layoutHeight }">
           <div class="h-full overflow-auto p-3 sm:p-4">
             <!-- Tab 切换淡入过渡 -->
             <Transition name="tab-fade" mode="out-in">
