@@ -12,7 +12,7 @@ useTheme()
       <component :is="Component" />
     </Transition>
   </RouterView>
-  <Toaster position="bottom-right" />
+  <Toaster position="top-right" class="pt-20" />
 </template>
 
 <style>

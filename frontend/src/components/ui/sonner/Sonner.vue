@@ -67,13 +67,13 @@ const typeAccent: Record<ToastType, string> = {
       )"
     >
       <TransitionGroup
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="opacity-0 translate-y-2 scale-95"
-        enter-to-class="opacity-100 translate-y-0 scale-100"
-        leave-active-class="transition duration-150 ease-in absolute"
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="opacity-0 translate-x-4 scale-95"
+        enter-to-class="opacity-100 translate-x-0 scale-100"
+        leave-active-class="transition duration-200 ease-in absolute"
         leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95"
-        move-class="transition duration-200 ease-out"
+        leave-to-class="opacity-0 translate-x-4 scale-95"
+        move-class="transition duration-300 ease-out"
       >
         <li
           v-for="t in toasts"

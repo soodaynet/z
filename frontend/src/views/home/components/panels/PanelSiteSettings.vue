@@ -45,7 +45,7 @@ async function handleSave() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <Card>
       <CardHeader>
         <CardTitle>站点信息</CardTitle>
@@ -73,7 +73,7 @@ async function handleSave() {
         </div>
       </CardContent>
     </Card>
-    <div class="flex justify-end gap-2">
+    <div class="flex justify-end gap-2 lg:col-span-2">
       <Button @click="handleSave">保存</Button>
     </div>
   </div>

@@ -33,7 +33,7 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <Card>
       <CardHeader>
         <CardTitle>壁纸设置</CardTitle>
@@ -95,7 +95,7 @@ function handleReset() {
         </div>
       </CardContent>
     </Card>
-    <div class="flex justify-end gap-2">
+    <div class="flex justify-end gap-2 lg:col-span-2">
       <Button variant="outline" @click="handleReset">重置</Button>
       <Button @click="handleSave">保存</Button>
     </div>

@@ -84,9 +84,9 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <!-- 用户信息 -->
-    <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg">
+    <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg lg:col-span-2">
       <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
         {{ authStore.userInfo?.name?.charAt(0) || '?' }}
       </div>
@@ -176,7 +176,7 @@ function handleLogout() {
     </div>
 
     <!-- 退出登录 -->
-    <div class="pt-2 border-t mt-auto">
+    <div class="pt-2 border-t mt-auto lg:col-span-2">
       <Button variant="destructive" class="w-full" @click="handleLogout">退出登录</Button>
     </div>
   </div>

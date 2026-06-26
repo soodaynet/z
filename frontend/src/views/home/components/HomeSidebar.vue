@@ -75,6 +75,33 @@ function prefetchSettingsChunk() {
   })
 }
 
+// 空闲时间预取全部 async chunk（去重）
+const prefetchedChunks = new Set<string>()
+function prefetchAllChunksIdle() {
+  if (prefetchedChunks.has('app-starter')) return
+  prefetchedChunks.add('app-starter')
+  prefetchedChunks.add('edit-icon-modal')
+  prefetchedChunks.add('iframe-modal')
+  // 显式 import 字面量，确保 bundler 识别为 chunk 拆分
+  Promise.all([
+    import('./HomeAppStarter.vue'),
+    import('./HomeEditIconModal.vue'),
+    import('./HomeIframeModal.vue'),
+  ]).catch(() => {
+    // 预取失败则清空标记，允许下次重试
+    prefetchedChunks.clear()
+  })
+}
+
+// 兼容不支持 requestIdleCallback 的浏览器，降级为 setTimeout
+const scheduleIdle = (cb: () => void) => {
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(cb, { timeout: 3000 })
+  } else {
+    setTimeout(cb, 1500)
+  }
+}
+
 function handleLogout() {
   authStore.removeToken()
   router.push('/login')
@@ -83,6 +110,10 @@ function handleLogout() {
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', handleResize, { passive: true })
+  // 空闲时间预取弹窗 chunk，点击时几乎立即可用
+  scheduleIdle(() => {
+    prefetchAllChunksIdle()
+  })
 })
 
 onUnmounted(() => {
