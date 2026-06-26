@@ -169,6 +169,7 @@ PR 合并前**必须**全部通过：
 
 - **变量外置**：`JWT_SECRET`、`CF_API_TOKEN`、`CF_ACCOUNT_ID`、`CF_D1_DATABASE_ID` 全部通过 Cloudflare Secrets 或 GitHub Actions Secrets 管理，**不得**硬编码。
 - **无 SSRF**：**不得**添加图片代理、URL 抓取等会发起服务端外部请求的功能。如需外部图片，前端直连目标 URL 或公开 favicon 服务。
+  - **SSRF 白名单例外**：`/panel/itemIcon/getSiteFavicon` 接口为唯一允许的服务端抓取例外——仅抓取目标公开站点的 HTML 用于解析 favicon link 标签，受 `isValidUrl` 约束（屏蔽 localhost/回环/私网段），5s 超时，并通过 `cf: { cacheTtl: 3600 }` 利用 Cloudflare 边缘缓存。其他接口不得新增服务端外部请求。
 - **无公开注册**：用户仅由管理员后台通过 `/panel/users/create` 创建，**不得**恢复 `/register` 接口。
 - **JWT 必填**：未配置 `JWT_SECRET` 时 Worker 启动失败（`src/modules/shared/env.ts` 校验），**不得**添加默认回退值。
 - **D1 唯一存储**：所有持久化数据存 Cloudflare D1（binding 名 `DB`，库名 `sun-panel-db`），**不得**引入 KV/R2/其他数据库。session/缓存等临时数据可用内存或 `c.var` 上下文，但不得持久化到非 D1 存储。

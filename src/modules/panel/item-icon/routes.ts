@@ -39,7 +39,8 @@ itemIconRouter.post('/getSiteFavicon', validate(faviconSchema), async (c) => {
   const { url } = c.var.validatedBody as { url: string }
 
   const service = new PanelService(c.env.DB)
-  const result = service.getSiteFavicon(url)
+  const result = await service.getSiteFavicon(url)
+  c.header('Cache-Control', 'private, max-age=600')
   return ok(c, result)
 })
 

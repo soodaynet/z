@@ -85,9 +85,9 @@ body::-webkit-scrollbar {
 
 .glass-hover {
   background-color: var(--glass-bg);
+  /* transform 由卡片 Tailwind 工具类处理，此处不再过渡 transform 避免重复来源 */
   transition: background-color var(--transition-normal),
     backdrop-filter var(--transition-normal),
-    transform 0.2s var(--ease-out),
     box-shadow 0.2s var(--ease-out);
 }
 
@@ -95,7 +95,6 @@ body::-webkit-scrollbar {
   background-color: var(--glass-bg-hover);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  transform: scale(1.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 

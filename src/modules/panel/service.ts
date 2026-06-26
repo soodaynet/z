@@ -11,7 +11,7 @@ import type {
 } from './types'
 import { queryAll, queryFirst } from '../shared/db'
 import { AppError } from '../shared/errors'
-import { isValidUrl } from '../shared/favicon'
+import { isValidUrl, parseFaviconFromHtml, probeFavicon } from '../shared/favicon'
 
 const ICON_SELECT = 'SELECT id, icon_json, title, url, description, open_method, sort, item_icon_group_id, user_id, created_at, updated_at FROM item_icons'
 const GROUP_SELECT = 'SELECT id, icon, title, description, sort, public_visible, user_id, created_at, updated_at FROM item_icon_groups'
@@ -305,22 +305,49 @@ export class PanelService {
 
   /**
    * 获取站点 favicon URL 列表
-   * 不在后端 fetch（避免 SSRF 风险），仅返回基于域名拼接的公开 favicon URL
+   *
+   * 服务端抓取站点 HTML 并解析所有图标 link 标签
+   * （icon/shortcut icon/apple-touch-icon/mask-icon/fluid-icon 与 msapplication-TileImage），
+   * 同时 HEAD 探测 /favicon.ico；受 isValidUrl SSRF 防护；HTML 抓取 5s 超时；cf 边缘缓存 1 小时。
+   * 抓取失败时使用兜底 URL（站点 /favicon.ico + Google favicon 服务）。
+   *
    * @param url 站点 URL
    */
-  getSiteFavicon(url: string): FaviconResponse {
+  async getSiteFavicon(url: string): Promise<FaviconResponse> {
     if (!isValidUrl(url)) {
       throw AppError.badRequest('URL 不合法或包含内网地址')
     }
-
     const parsedUrl = new URL(url)
-    const domain = parsedUrl.hostname
+    const origin = parsedUrl.origin
+    const found = new Set<string>()
 
-    const iconUrls = [
-      `/api/favicon-proxy?domain=${domain}&sz=64`,
-      `${parsedUrl.origin}/favicon.ico`,
-    ]
+    // 1. HEAD 探测 /favicon.ico
+    const probe = await probeFavicon(origin, '/favicon.ico')
+    if (probe) found.add(probe.url)
 
+    // 2. 抓取站点 HTML 并解析所有图标 link 标签
+    try {
+      const abort = new AbortController()
+      const timeout = setTimeout(() => abort.abort(), 5000)
+      const htmlRes = await fetch(origin, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SunPanel/1.0)', Accept: 'text/html' },
+        signal: abort.signal,
+        redirect: 'follow',
+        cf: { cacheTtl: 3600 },
+      } as RequestInit)
+      clearTimeout(timeout)
+      if (htmlRes.ok) {
+        const html = await htmlRes.text()
+        const candidates = parseFaviconFromHtml(html, origin)
+        for (const c of candidates) found.add(c.url)
+      }
+    } catch { /* HTML 抓取失败，使用兜底 */ }
+
+    // 3. 兜底
+    found.add(`${origin}/favicon.ico`)
+    found.add(`https://t0.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url=${encodeURIComponent(origin)}`)
+
+    const iconUrls = Array.from(found).slice(0, 10)
     return { iconUrls }
   }
 }

@@ -294,7 +294,7 @@ watch(() => authStore.isLoggedIn, (val) => {
       <!-- 内容区域（始终渲染，loading 结束后图标自动填充） -->
       <div>
         <template v-for="(group, gi) in visibleGroups" :key="group.id || gi">
-          <div class="mb-4 group-section" :class="`item-group-index-${gi}`">
+          <div class="mb-2 group-section" :class="`item-group-index-${gi}`">
             <div class="flex items-center gap-2 mb-2 px-2 group-title-row">
               <h3 class="text-white text-base sm:text-lg font-medium">{{ group.title }}</h3>
               <div class="group-title-btns opacity-0 transition-opacity duration-200 flex items-center gap-1">
@@ -422,6 +422,8 @@ watch(() => authStore.isLoggedIn, (val) => {
 .group-section {
   content-visibility: auto;
   contain-intrinsic-size: auto 300px;
+  /* 纵向 padding：为 hover scale(1.05) 溢出留空间，避免 content-visibility 的 paint containment 裁切卡片 */
+  padding-block: 6px;
 }
 
 /* 返回顶部按钮：玻璃质感，与公告设置同步 */
