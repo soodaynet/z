@@ -8,9 +8,8 @@ import { InitService } from './service'
 
 export const router = new Hono<AppContext>()
 
-router.use('*', publicModeMiddleware)
-
-router.post('/init', async (c) => {
+// publicModeMiddleware 仅作用于 /init 路由，避免 use('*') 经 app.route('/', ...) 合并后泄漏为全局中间件
+router.post('/init', publicModeMiddleware, async (c) => {
   const user = getAuthUser(c)
   const service = new InitService(new PanelService(c.env.DB), new SettingsService(c.env.DB))
   const data = await service.aggregate(user)

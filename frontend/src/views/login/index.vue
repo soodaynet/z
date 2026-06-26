@@ -69,60 +69,62 @@ function handleSkipLogin() {
         <p class="loader-text">加载中...</p>
       </div>
     </Transition>
-    <Card
-      v-show="!pageLoading"
-      class="login-card w-[92vw] sm:w-full max-w-sm shadow-xl mx-4"
-      :style="loginCardStyle"
-    >
-      <CardHeader class="text-center">
-        <CardTitle class="text-xl text-gray-700 dark:text-gray-200">
-          {{ siteTitle }}
-        </CardTitle>
-      </CardHeader>
+    <Transition name="card-in">
+      <Card
+        v-if="!pageLoading"
+        class="login-card w-[92vw] sm:w-full max-w-sm shadow-xl mx-4"
+        :style="loginCardStyle"
+      >
+        <CardHeader class="text-center">
+          <CardTitle class="text-xl text-gray-700 dark:text-gray-200">
+            {{ siteTitle }}
+          </CardTitle>
+        </CardHeader>
 
-      <CardContent>
-        <form class="flex flex-col gap-4" @submit.prevent="handleLogin">
-          <div class="flex flex-col gap-2">
-            <Label for="username">用户名</Label>
-            <Input
-              id="username"
-              v-model="username"
-              placeholder="请输入用户名"
+        <CardContent>
+          <form class="flex flex-col gap-4" @submit.prevent="handleLogin">
+            <div class="flex flex-col gap-2">
+              <Label for="username">用户名</Label>
+              <Input
+                id="username"
+                v-model="username"
+                placeholder="请输入用户名"
+                :disabled="loading"
+                autocomplete="username"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <Label for="password">密码</Label>
+              <Input
+                id="password"
+                v-model="password"
+                type="password"
+                placeholder="请输入密码"
+                :disabled="loading"
+                autocomplete="current-password"
+              />
+            </div>
+            <Button
+              type="submit"
+              size="lg"
+              class="login-btn w-full touch-manipulation text-white shadow-lg shadow-[#4a90d9]/30 transition-all hover:brightness-110"
+              :style="loginButtonStyle"
               :disabled="loading"
-              autocomplete="username"
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <Label for="password">密码</Label>
-            <Input
-              id="password"
-              v-model="password"
-              type="password"
-              placeholder="请输入密码"
-              :disabled="loading"
-              autocomplete="current-password"
-            />
-          </div>
-          <Button
-            type="submit"
-            size="lg"
-            class="login-btn w-full touch-manipulation text-white shadow-lg shadow-[#4a90d9]/30 transition-all hover:brightness-110"
-            :style="loginButtonStyle"
-            :disabled="loading"
-          >
-            <span v-if="loading" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            登录
+            >
+              <span v-if="loading" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              登录
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter v-if="hasPublicMode" class="flex-col items-stretch gap-4">
+          <div class="h-px bg-border" />
+          <Button variant="secondary" size="lg" class="w-full touch-manipulation" @click="handleSkipLogin">
+            以访客身份浏览
           </Button>
-        </form>
-      </CardContent>
-
-      <CardFooter v-if="hasPublicMode" class="flex-col items-stretch gap-4">
-        <div class="h-px bg-border" />
-        <Button variant="secondary" size="lg" class="w-full touch-manipulation" @click="handleSkipLogin">
-          以访客身份浏览
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </Transition>
   </div>
 </template>
 
@@ -134,6 +136,15 @@ function handleSkipLogin() {
 }
 .login-page-container.bg-ready {
   opacity: 1;
+}
+
+/* 登录卡片淡入+上浮动画，与背景图淡入协调 */
+.card-in-enter-active {
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.card-in-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .login-card {
