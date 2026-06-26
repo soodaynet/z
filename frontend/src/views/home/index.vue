@@ -418,10 +418,8 @@ watch(() => authStore.isLoggedIn, (val) => {
 </template>
 
 <style scoped>
-/* 分组容器离屏渲染跳过，提升长列表滚动性能 */
+/* 分组容器：移除 content-visibility 以避免 contain:paint 裁剪 hover 缩放 */
 .group-section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 300px;
 }
 
 /* 返回顶部按钮：玻璃质感，与公告设置同步 */

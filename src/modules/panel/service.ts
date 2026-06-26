@@ -305,7 +305,7 @@ export class PanelService {
 
   /**
    * 获取站点 favicon URL 列表
-   * 不在后端 fetch（避免 SSRF 风险），仅返回基于域名拼接的公开 favicon URL
+   * 返回多个公共 favicon 服务候选 URL，前端直连，后端不 fetch（SSRF 禁令）
    * @param url 站点 URL
    */
   getSiteFavicon(url: string): FaviconResponse {
@@ -317,8 +317,17 @@ export class PanelService {
     const domain = parsedUrl.hostname
 
     const iconUrls = [
+      // Google favicon 服务（via 现有 /api/favicon-proxy，避免前端 CORS）
       `/api/favicon-proxy?domain=${domain}&sz=64`,
+      `/api/favicon-proxy?domain=${domain}&sz=128`,
+      // 其他公共 favicon 服务，前端直连
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      `https://icon.horse/icon/${domain}`,
+      `https://favicons.githubusercontent.com/${domain}`,
+      `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=256`,
+      // 站点直连
       `${parsedUrl.origin}/favicon.ico`,
+      `${parsedUrl.origin}/apple-touch-icon.png`,
     ]
 
     return { iconUrls }
