@@ -296,24 +296,6 @@ watch(() => authStore.isLoggedIn, (val) => {
     <!-- 主内容区域 -->
     <div class="relative z-10 mx-auto flex-1 w-full" :style="containerStyle">
 
-      <!-- 加载骨架屏（不阻塞内容渲染） -->
-      <Transition name="loader-fade">
-        <div v-if="loading" class="space-y-8">
-          <div v-for="i in 3" :key="`skeleton-group-${i}`" class="space-y-3">
-            <!-- 分组标题占位 -->
-            <div class="h-4 w-24 bg-white/10 rounded animate-pulse"></div>
-            <!-- 6 个图标占位方块 -->
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              <div
-                v-for="j in 6"
-                :key="`skeleton-item-${i}-${j}`"
-                class="w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 rounded-xl bg-white/10 animate-pulse"
-              ></div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-
       <!-- 内容区域（始终渲染，loading 结束后图标自动填充） -->
       <div>
         <template v-for="(group, gi) in visibleGroups" :key="group.id || gi">
@@ -345,7 +327,7 @@ watch(() => authStore.isLoggedIn, (val) => {
               v-if="editModeGroupId === group.id"
               v-model="group.items"
               :animation="200"
-              class="flex flex-wrap gap-2 sm:gap-3"
+              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 lg:gap-4"
               @end="saveItemSortOrder(group)"
             >
               <HomeItemCard
@@ -360,7 +342,7 @@ watch(() => authStore.isLoggedIn, (val) => {
                 @delete="handleDeleteItem"
               />
             </VueDraggable>
-            <div v-else class="flex flex-wrap gap-2 sm:gap-3">
+            <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 lg:gap-4">
               <div
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
