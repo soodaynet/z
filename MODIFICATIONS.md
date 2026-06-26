@@ -13,8 +13,7 @@
 
 | 序号 | 文件路径 | 修改类型 | 说明 | 日期 |
 | - | - | - | - | - |
-
-_暂无修改_
+| 1 | frontend/src/components/ui/card/Card.vue | 视觉样式 | 圆角由 `rounded-xl` 调整为 `rounded-lg`，与 DialogContent 圆角统一，符合 spec「dialog/card 用 rounded-lg」要求；阴影 `shadow-sm` 保持不变 | 2026-06-26 |
 
 ## 新 UI 库引入登记表
 

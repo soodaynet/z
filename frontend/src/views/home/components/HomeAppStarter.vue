@@ -160,8 +160,8 @@ function handleGroupSaved() {
         />
         <div class="flex-1 min-w-0 overflow-hidden" :style="{ height: layoutHeight }">
           <div class="h-full overflow-auto p-3 sm:p-4">
-            <!-- 面板切换淡入淡出动画 -->
-            <Transition name="panel-fade" mode="out-in">
+            <!-- Tab 切换淡入过渡 -->
+            <Transition name="tab-fade" mode="out-in">
               <div :key="activeApp">
                 <!-- ====== 我的信息 ====== -->
                 <PanelUserInfo v-if="activeApp === 'UserInfo'" />
@@ -241,3 +241,13 @@ function handleGroupSaved() {
     </DialogContent>
   </Dialog>
 </template>
+
+<style scoped>
+/* Tab 切换淡入过渡 */
+.tab-fade-enter-active {
+  transition: opacity 150ms ease-out;
+}
+.tab-fade-enter-from {
+  opacity: 0;
+}
+</style>

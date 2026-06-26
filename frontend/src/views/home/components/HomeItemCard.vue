@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
+import { Pencil, Trash2 } from 'lucide-vue-next'
 import { preconnectOrigin } from '@/utils/preconnect'
 
 const props = defineProps<{
@@ -35,7 +36,7 @@ watch(
 
 <template>
   <div
-    class="group-item w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-all hover:scale-105 relative glass-hover"
+    class="group-item w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-all duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover"
     style="contain: layout style"
     @click="emit('click', item)"
   >
@@ -65,9 +66,9 @@ watch(
         {{ item.icon?.text || item.title?.charAt(0) || '?' }}
       </div>
     </div>
-    <span class="text-white text-[11px] sm:text-xs text-center line-clamp-2 px-1">{{ item.title }}</span>
+    <span class="text-white text-[11px] sm:text-xs text-center line-clamp-2 px-1 leading-tight font-medium">{{ item.title }}</span>
 
-    <!-- 编辑模式下显示编辑/删除按钮 -->
+    <!-- 编辑模式下显示编辑/删除按钮，使用 lucide 矢量图标替代字符 -->
     <div v-if="editable && isEditMode" class="absolute top-1 right-1 flex gap-1">
       <Button
         size="icon"
@@ -75,14 +76,18 @@ watch(
         title="编辑"
         class="h-6 w-6"
         @click.stop="emit('edit', item)"
-      >✎</Button>
+      >
+        <Pencil class="h-3 w-3" />
+      </Button>
       <Button
         size="icon"
         variant="destructive"
         title="删除"
         class="h-6 w-6"
         @click.stop="emit('delete', item)"
-      >✕</Button>
+      >
+        <Trash2 class="h-3 w-3" />
+      </Button>
     </div>
   </div>
 </template>

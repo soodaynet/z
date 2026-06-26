@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/sonner'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore, useAppStore } from '@/store'
 import { updateUserInfo, updatePassword } from '@/modules'
 
@@ -84,100 +85,121 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <!-- 用户信息 -->
-    <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg lg:col-span-2">
-      <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-        {{ authStore.userInfo?.name?.charAt(0) || '?' }}
-      </div>
-      <div>
-        <div class="font-medium">{{ authStore.userInfo?.name }}</div>
-        <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
-        <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
-      </div>
-    </div>
-
-    <!-- 修改名称 -->
-    <div>
-      <label class="block text-sm mb-1 font-medium">账户名称</label>
-      <div v-if="editingName" class="flex flex-col gap-2">
-        <Input v-model="nameValue" placeholder="请输入新名称" />
-        <div class="flex gap-2">
-          <Button size="sm" :disabled="nameSaving" @click="handleSaveName">保存</Button>
-          <Button size="sm" variant="outline" @click="editingName = false">取消</Button>
+  <div class="flex flex-col gap-4">
+    <!-- 用户信息卡片 -->
+    <Card>
+      <CardHeader>
+        <CardTitle>用户信息</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+            {{ authStore.userInfo?.name?.charAt(0) || '?' }}
+          </div>
+          <div>
+            <div class="font-medium">{{ authStore.userInfo?.name }}</div>
+            <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
+            <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
+          </div>
         </div>
-      </div>
-      <div v-else class="flex items-center gap-2">
-        <span class="text-sm text-muted-foreground">{{ authStore.userInfo?.name }}</span>
-        <Button size="sm" variant="link" class="h-auto p-0" @click="startEditName">修改</Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
 
-    <!-- 修改密码 -->
-    <div>
-      <label class="block text-sm mb-1 font-medium">账户密码</label>
-      <div v-if="editingPassword" class="flex flex-col gap-2">
-        <Input v-model="oldPassword" type="password" placeholder="当前密码" />
-        <Input v-model="newPassword" type="password" placeholder="新密码（至少6位）" />
-        <Input v-model="confirmPassword" type="password" placeholder="确认新密码" />
-        <div class="flex gap-2">
-          <Button size="sm" :disabled="passwordSaving" @click="handleSavePassword">保存</Button>
-          <Button size="sm" variant="outline" @click="editingPassword = false">取消</Button>
+    <!-- 账户安全卡片：名称 + 密码 -->
+    <Card>
+      <CardHeader>
+        <CardTitle>账户安全</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <!-- 修改名称 -->
+        <div>
+          <label class="block text-sm mb-1 font-medium">账户名称</label>
+          <div v-if="editingName" class="flex flex-col gap-2">
+            <Input v-model="nameValue" placeholder="请输入新名称" />
+            <div class="flex gap-2">
+              <Button size="sm" :disabled="nameSaving" @click="handleSaveName">保存</Button>
+              <Button size="sm" variant="outline" @click="editingName = false">取消</Button>
+            </div>
+          </div>
+          <div v-else class="flex items-center gap-2">
+            <span class="text-sm text-muted-foreground">{{ authStore.userInfo?.name }}</span>
+            <Button size="sm" variant="link" class="h-auto p-0" @click="startEditName">修改</Button>
+          </div>
         </div>
-      </div>
-      <div v-else class="flex items-center gap-2">
-        <span class="text-sm text-muted-foreground">******</span>
-        <Button size="sm" variant="link" class="h-auto p-0" @click="startEditPassword">修改</Button>
-      </div>
-    </div>
 
-    <!-- 主题 -->
-    <div>
-      <label class="block text-sm mb-1 font-medium">主题</label>
-      <div class="flex gap-2">
-        <Button
-          size="sm"
-          :variant="appStore.theme === 'dark' ? 'default' : 'outline'"
-          @click="appStore.setTheme('dark')"
-          >深色</Button
-        >
-        <Button
-          size="sm"
-          :variant="appStore.theme === 'light' ? 'default' : 'outline'"
-          @click="appStore.setTheme('light')"
-          >浅色</Button
-        >
-        <Button
-          size="sm"
-          :variant="appStore.theme === 'auto' ? 'default' : 'outline'"
-          @click="appStore.setTheme('auto')"
-          >跟随系统</Button
-        >
-      </div>
-    </div>
+        <!-- 修改密码 -->
+        <div>
+          <label class="block text-sm mb-1 font-medium">账户密码</label>
+          <div v-if="editingPassword" class="flex flex-col gap-2">
+            <Input v-model="oldPassword" type="password" placeholder="当前密码" />
+            <Input v-model="newPassword" type="password" placeholder="新密码（至少6位）" />
+            <Input v-model="confirmPassword" type="password" placeholder="确认新密码" />
+            <div class="flex gap-2">
+              <Button size="sm" :disabled="passwordSaving" @click="handleSavePassword">保存</Button>
+              <Button size="sm" variant="outline" @click="editingPassword = false">取消</Button>
+            </div>
+          </div>
+          <div v-else class="flex items-center gap-2">
+            <span class="text-sm text-muted-foreground">******</span>
+            <Button size="sm" variant="link" class="h-auto p-0" @click="startEditPassword">修改</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
-    <!-- 语言 -->
-    <div>
-      <label class="block text-sm mb-1 font-medium">语言</label>
-      <div class="flex gap-2">
-        <Button
-          size="sm"
-          :variant="appStore.language === 'zh-CN' ? 'default' : 'outline'"
-          @click="appStore.setLanguage('zh-CN')"
-          >中文</Button
-        >
-        <Button
-          size="sm"
-          :variant="appStore.language === 'en-US' ? 'default' : 'outline'"
-          @click="appStore.setLanguage('en-US')"
-          >English</Button
-        >
-      </div>
-    </div>
+    <!-- 偏好设置卡片：主题 + 语言 -->
+    <Card>
+      <CardHeader>
+        <CardTitle>偏好设置</CardTitle>
+      </CardHeader>
+      <CardContent class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- 主题 -->
+        <div>
+          <label class="block text-sm mb-1 font-medium">主题</label>
+          <div class="flex gap-2">
+            <Button
+              size="sm"
+              :variant="appStore.theme === 'dark' ? 'default' : 'outline'"
+              @click="appStore.setTheme('dark')"
+              >深色</Button
+            >
+            <Button
+              size="sm"
+              :variant="appStore.theme === 'light' ? 'default' : 'outline'"
+              @click="appStore.setTheme('light')"
+              >浅色</Button
+            >
+            <Button
+              size="sm"
+              :variant="appStore.theme === 'auto' ? 'default' : 'outline'"
+              @click="appStore.setTheme('auto')"
+              >跟随系统</Button
+            >
+          </div>
+        </div>
+
+        <!-- 语言 -->
+        <div>
+          <label class="block text-sm mb-1 font-medium">语言</label>
+          <div class="flex gap-2">
+            <Button
+              size="sm"
+              :variant="appStore.language === 'zh-CN' ? 'default' : 'outline'"
+              @click="appStore.setLanguage('zh-CN')"
+              >中文</Button
+            >
+            <Button
+              size="sm"
+              :variant="appStore.language === 'en-US' ? 'default' : 'outline'"
+              @click="appStore.setLanguage('en-US')"
+              >English</Button
+            >
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
     <!-- 退出登录 -->
-    <div class="pt-2 border-t mt-auto lg:col-span-2">
-      <Button variant="destructive" class="w-full" @click="handleLogout">退出登录</Button>
-    </div>
+    <Button variant="destructive" class="w-full" @click="handleLogout">退出登录</Button>
   </div>
 </template>
