@@ -140,8 +140,9 @@ export function useLoginPage() {
       if (res.code === 0 && res.data) {
         applyAboutResponse(res.data)
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      // 排查站点信息无法显示的问题（如 CDN 缓存、WAF 拦截、网络错误）
+      console.error('[login] getAbout failed:', e)
     } finally {
       pageLoading.value = false
     }

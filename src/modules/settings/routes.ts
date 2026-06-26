@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { adminMiddleware, authMiddleware } from '../shared/middleware/auth'
 import { validate } from '../shared/validate'
 import { ok } from '../shared/response'
@@ -55,12 +55,17 @@ router.post(
 
 /**
  * 获取所有设置（公开）
- * POST /about
+ * GET/POST /about
+ * GET 请求免 CSRF 校验，更适合登录页获取只读站点信息；
+ * CDN 不缓存（no-cache），避免错误/过期响应导致站点信息无法显示。
  */
-router.post('/about', async (c) => {
+async function handleAbout(c: Context<AppContext>) {
   const service = new SettingsService(c.env.DB)
   const settings = await service.getAll()
   c.header('Cache-Control', 'public, max-age=300, stale-while-revalidate=600')
-  c.header('CDN-Cache-Control', 'public, max-age=600')
+  c.header('CDN-Cache-Control', 'no-cache')
   return ok(c, settings)
-})
+}
+
+router.get('/about', handleAbout)
+router.post('/about', handleAbout)
