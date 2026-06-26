@@ -61,7 +61,7 @@ const typeAccent: Record<ToastType, string> = {
     <ol
       data-slot="toaster"
       :class="cn(
-        'pointer-events-none fixed z-[100] flex max-h-screen w-full max-w-sm gap-2 p-4',
+        'pointer-events-none group fixed z-[100] flex max-h-screen w-full max-w-sm gap-2 p-4',
         positionClass,
         props.class,
       )"
@@ -76,12 +76,14 @@ const typeAccent: Record<ToastType, string> = {
         move-class="transition duration-300 ease-out"
       >
         <li
-          v-for="t in toasts"
+          v-for="(t, i) in toasts"
           :key="t.id"
           :data-type="t.type"
           :class="cn(
-            'bg-background text-foreground pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-md border p-4 shadow-lg',
+            'bg-background text-foreground pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-md border p-4 shadow-lg transition-all duration-300',
             richColors ? typeAccent[t.type] : '',
+            // 非最新项默认折叠堆叠，鼠标移入容器时展开显示全部
+            i < toasts.length - 1 && 'max-h-0 scale-95 border-transparent opacity-0 py-0 shadow-none group-hover:max-h-96 group-hover:scale-100 group-hover:opacity-100 group-hover:py-4 group-hover:border group-hover:shadow-lg',
           )"
         >
           <component

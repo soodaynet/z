@@ -37,6 +37,10 @@ function pushToast(title: string, options: ToastOptions = {}): number {
     duration,
   }
   toasts.value.push(toastItem)
+  // 最多保留 5 条，超出移除最老的
+  if (toasts.value.length > 5) {
+    toasts.value.splice(0, toasts.value.length - 5)
+  }
   if (duration > 0) {
     setTimeout(() => dismiss(id), duration)
   }
