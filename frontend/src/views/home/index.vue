@@ -283,8 +283,8 @@ watch(() => authStore.isLoggedIn, (val) => {
       <!-- 内容区域（始终渲染，loading 结束后图标自动填充） -->
       <div>
         <template v-for="(group, gi) in visibleGroups" :key="group.id || gi">
-          <div class="mb-6 group-section" :class="`item-group-index-${gi}`">
-            <div class="flex items-center gap-2 mb-3 px-2 group-title-row">
+          <div class="mb-4 group-section" :class="`item-group-index-${gi}`">
+            <div class="flex items-center gap-2 mb-2 px-2 group-title-row">
               <h3 class="text-white text-base sm:text-lg font-medium">{{ group.title }}</h3>
               <div class="group-title-btns opacity-0 transition-opacity duration-200 flex items-center gap-1">
                 <Button
@@ -311,7 +311,7 @@ watch(() => authStore.isLoggedIn, (val) => {
               v-if="editModeGroupId === group.id"
               v-model="group.items"
               :animation="200"
-              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 lg:gap-4"
+              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3"
               @end="saveItemSortOrder(group)"
             >
               <HomeItemCard
@@ -326,7 +326,7 @@ watch(() => authStore.isLoggedIn, (val) => {
                 @delete="handleDeleteItem"
               />
             </VueDraggable>
-            <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 lg:gap-4">
+            <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
               <div
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
@@ -343,7 +343,7 @@ watch(() => authStore.isLoggedIn, (val) => {
             </div>
             <div
               v-if="!group.items || group.items.length === 0"
-              class="text-center text-gray-400 text-xs sm:text-sm py-3 sm:py-4"
+              class="text-center text-gray-400 text-xs sm:text-sm py-2 sm:py-3"
             >
               {{ authStore.isVisitMode ? '暂无图标' : '暂无图标，点击" + 添加"创建' }}
             </div>

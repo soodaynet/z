@@ -9,7 +9,7 @@ export const userListSchema = z.object({
 // POST /panel/users/create 请求体
 export const userCreateSchema = z.object({
   username: z.string().min(1).max(100),
-  password: z.string().min(6, '密码至少6位').max(128),
+  password: z.string(),
   name: z.string().max(50).optional(),
   role: z.number().int().min(1).max(2).optional(),
   status: z.number().int().min(0).max(1).optional(),
@@ -38,7 +38,7 @@ export const updateNameSchema = z.object({
 // POST /user/updatePassword 请求体
 export const updatePasswordSchema = z.object({
   oldPassword: z.string().min(1, '密码不能为空'),
-  newPassword: z.string().min(6, '新密码至少6位').max(128),
+  newPassword: z.string(),
 })
 
 // POST /panel/users/setPublicVisitUser 请求体

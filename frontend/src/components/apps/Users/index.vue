@@ -53,7 +53,7 @@ const userList = ref<User.Info[]>([])
 
 // 分页状态
 const page = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(5)
 const total = ref(0)
 const totalPages = computed(() =>
   total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,

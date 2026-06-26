@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useConfigEditor } from '../../composables/useConfigEditor'
 
 const props = defineProps<{
@@ -33,12 +32,10 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
-    <Card>
-      <CardHeader>
-        <CardTitle>壁纸设置</CardTitle>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4">
+  <div class="flex flex-col gap-3">
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">壁纸设置</h3>
+      <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>壁纸地址</Label>
           <Input v-model="localConfig.backgroundImageSrc" placeholder="输入图片URL" />
@@ -62,13 +59,11 @@ function handleReset() {
             :step="0.1"
           />
         </div>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader>
-        <CardTitle>布局设置</CardTitle>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4">
+      </div>
+    </div>
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">布局设置</h3>
+      <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>最大宽度</Label>
           <Input v-model="localConfig.maxWidth" type="number" />
@@ -81,21 +76,19 @@ function handleReset() {
           <Label>下边距</Label>
           <Input v-model="localConfig.marginBottom" type="number" />
         </div>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader>
-        <CardTitle>页脚设置</CardTitle>
-        <CardDescription>支持 HTML 标签</CardDescription>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4">
+      </div>
+    </div>
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">页脚设置</h3>
+      <p class="text-sm text-muted-foreground mb-2">支持 HTML 标签</p>
+      <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>自定义页脚</Label>
           <Textarea v-model="localConfig.footerHtml" rows="3" placeholder="<p>&copy; 2024 Sun-Panel</p>" />
         </div>
-      </CardContent>
-    </Card>
-    <div class="flex justify-end gap-2 @[600px]:col-span-2">
+      </div>
+    </div>
+    <div class="flex justify-end gap-2">
       <Button variant="outline" @click="handleReset">重置</Button>
       <Button @click="handleSave">保存</Button>
     </div>

@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/sonner'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore, useAppStore } from '@/store'
 import { updateUserInfo, updatePassword } from '@/modules'
 
@@ -85,32 +84,26 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
-    <!-- 用户信息卡片 -->
-    <Card>
-      <CardHeader>
-        <CardTitle>用户信息</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div class="flex items-center gap-2 sm:gap-3">
-          <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-            {{ authStore.userInfo?.name?.charAt(0) || '?' }}
-          </div>
-          <div>
-            <div class="font-medium">{{ authStore.userInfo?.name }}</div>
-            <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
-            <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
-          </div>
+  <div class="flex flex-col gap-3">
+    <!-- 用户信息 -->
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">用户信息</h3>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+          {{ authStore.userInfo?.name?.charAt(0) || '?' }}
         </div>
-      </CardContent>
-    </Card>
+        <div>
+          <div class="font-medium">{{ authStore.userInfo?.name }}</div>
+          <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
+          <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
+        </div>
+      </div>
+    </div>
 
-    <!-- 账户安全卡片：名称 + 密码 -->
-    <Card>
-      <CardHeader>
-        <CardTitle>账户安全</CardTitle>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4">
+    <!-- 账户安全：名称 + 密码 -->
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">账户安全</h3>
+      <div class="flex flex-col gap-3">
         <!-- 修改名称 -->
         <div>
           <label class="block text-sm mb-1 font-medium">账户名称</label>
@@ -144,15 +137,13 @@ function handleLogout() {
             <Button size="sm" variant="link" class="h-auto p-0" @click="startEditPassword">修改</Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
 
-    <!-- 偏好设置卡片：主题 + 语言 -->
-    <Card class="@[600px]:col-span-2">
-      <CardHeader>
-        <CardTitle>偏好设置</CardTitle>
-      </CardHeader>
-      <CardContent class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
+    <!-- 偏好设置：主题 + 语言 -->
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">偏好设置</h3>
+      <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
         <!-- 主题 -->
         <div>
           <label class="block text-sm mb-1 font-medium">主题</label>
@@ -196,10 +187,10 @@ function handleLogout() {
             >
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
 
     <!-- 退出登录 -->
-    <Button variant="destructive" class="w-full @[600px]:col-span-2" @click="handleLogout">退出登录</Button>
+    <Button variant="destructive" class="w-full" @click="handleLogout">退出登录</Button>
   </div>
 </template>

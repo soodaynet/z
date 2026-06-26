@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { saveSiteSettings } from '@/modules'
 
 const props = defineProps<{
@@ -45,12 +44,10 @@ async function handleSave() {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
-    <Card>
-      <CardHeader>
-        <CardTitle>站点信息</CardTitle>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4">
+  <div class="flex flex-col gap-3">
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">站点信息</h3>
+      <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>站点标题 (浏览器标签页)</Label>
           <Input v-model="localSiteConfig.site_title" placeholder="站点标题" />
@@ -59,21 +56,19 @@ async function handleSave() {
           <Label>网站图标 URL (favicon)</Label>
           <Input v-model="localSiteConfig.favicon_url" placeholder="输入图标URL，显示在浏览器标签页上" />
         </div>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader>
-        <CardTitle>登录页背景</CardTitle>
-        <CardDescription>设置登录页的背景图片</CardDescription>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4">
+      </div>
+    </div>
+    <div>
+      <h3 class="text-sm font-medium text-foreground mb-2">登录页背景</h3>
+      <p class="text-sm text-muted-foreground mb-2">设置登录页的背景图片</p>
+      <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>登录页背景图片</Label>
           <Input v-model="localSiteConfig.login_bg_image" placeholder="输入图片URL" />
         </div>
-      </CardContent>
-    </Card>
-    <div class="flex justify-end gap-2 @[600px]:col-span-2">
+      </div>
+    </div>
+    <div class="flex justify-end gap-2">
       <Button @click="handleSave">保存</Button>
     </div>
   </div>
