@@ -78,10 +78,15 @@ const apps = computed<App[]>(() => {
   return list
 })
 
+// resize 节流：避免拖动窗口时高频触发重排
+let resizeTimer: ReturnType<typeof setTimeout> | null = null
 function handleResize() {
-  screenWidth.value = window.innerWidth
-  isSmallScreen.value = screenWidth.value < 640
-  if (isSmallScreen.value) collapsed.value = true
+  if (resizeTimer) clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    screenWidth.value = window.innerWidth
+    isSmallScreen.value = screenWidth.value < 640
+    if (isSmallScreen.value) collapsed.value = true
+  }, 150)
 }
 
 const layoutHeight = computed(() => 'min(85vh, 560px)')
@@ -94,6 +99,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  if (resizeTimer) clearTimeout(resizeTimer)
 })
 
 // ====== 站点设置 ======
