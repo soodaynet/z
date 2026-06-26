@@ -24,7 +24,7 @@
 - **验证后提交**：提交前必须运行 `pnpm run typecheck` + `pnpm run lint` + `pnpm --filter sun-panel-frontend run build` 全部通过。
 - **中文注释**：标识符用英文，注释用中文。
 - **不创建文档**：除非用户明确要求，**不得**主动创建 `.md` 文档。
-- **不修改生成代码**：`frontend/src/components/ui/**` 是 shadcn-vue 生成代码，**不得**修改其源码。
+- **生成组件可改（仅视觉样式）**：`frontend/src/components/ui/**` 是 shadcn-vue 生成代码，**允许修改视觉样式**（颜色/尺寸/间距/圆角/阴影/透明度/边框/过渡动画等），**不得**改动逻辑/props API/事件/插槽/a11y 语义。修改处须加中文注释 `// shadcn-vue 生成，本地修改：<说明>`，并在 `/workspace/MODIFICATIONS.md` 登记。
 - **不假设依赖可用**：使用新库前先查 `package.json` / `frontend/package.json`，确认已安装。
 
 ---
@@ -65,7 +65,7 @@ frontend/src/modules/<name>/
 ### UI 组件仅样式
 
 - `frontend/src/components/ui/**` 是 shadcn-vue 生成代码（badge、button、card、dialog、form、input、select、table 等）。
-- **不得**修改这些生成组件的源码，只能从外部组合使用。
+- **允许修改视觉样式**（颜色/尺寸/间距/圆角/阴影/透明度/边框等），**不得**改动逻辑/props API/事件/插槽/a11y 语义；修改处加注释 `// shadcn-vue 生成，本地修改：<说明>` 并在 `/workspace/MODIFICATIONS.md` 登记。
 - 新增基础组件用 `pnpm --filter sun-panel-frontend dlx shadcn-vue@latest add <name>` 生成。
 
 ### 跨层修改需谨慎
@@ -140,7 +140,7 @@ PR 合并前**必须**全部通过：
 - [ ] `pnpm --filter sun-panel-frontend run typecheck`（前端 vue-tsc）通过
 - [ ] `pnpm run lint` 通过
 - [ ] `pnpm --filter sun-panel-frontend run build` 构建成功
-- [ ] 无 naive-ui 残留引用：`grep -r "naive-ui" frontend/src` 无输出
+- [ ] 生成组件修改与新 UI 库引入已在 `/workspace/MODIFICATIONS.md` 登记
 - [ ] 无新增内联样式（`style="..."`），动态 `:style` 绑定除外
 - [ ] 无硬编码密钥、密码、ID
 - [ ] 无图片代理相关代码（`proxy-image`、`/api/proxy`）
@@ -158,11 +158,10 @@ PR 合并前**必须**全部通过：
 - **Node 24 兼容**：仅升级到 Node 24 兼容的最新稳定版。
 - **依赖位置**：后端依赖写在根 `package.json`，前端依赖写在 `frontend/package.json`。
 - **包管理器**：统一使用 `pnpm@10.15.1`（workspace monorepo，根 + `frontend/`）。
-- **不引入新 UI 库**：已使用 shadcn-vue + Reka UI v2 + Tailwind CSS 4。
-- **禁止引入**：`naive-ui`、`dompurify`、`unplugin-vue-components`。
+- **可引入新 UI 库**：已使用 shadcn-vue + Reka UI v2 + Tailwind CSS 4；如需引入新 UI 库（含 naive-ui / dompurify / unplugin-vue-components 等），须在 PR 说明中给出明确理由，并在 `/workspace/MODIFICATIONS.md` 登记。
 - **升级前验证基线**：升级依赖前先运行 `pnpm run typecheck && pnpm run lint` 确保基线通过。
 - **新增依赖需理由**：新增依赖**必须**在 PR 说明中给出明确理由。
-- **不修改生成组件**：UI 组件由 `shadcn-vue` CLI 生成，不手动引入第三方组件库替代。
+- **生成组件仅改视觉样式**：UI 组件由 `shadcn-vue` CLI 生成，可修改视觉样式（颜色/尺寸等），不得改逻辑/props/a11y；修改须加注释并在 `/workspace/MODIFICATIONS.md` 登记。
 
 ---
 

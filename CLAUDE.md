@@ -60,6 +60,8 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 | axios | ^1.7.9 |
 | vue-draggable-plus | ^0.6.0 |
 
+> **生成组件与新 UI 库**：`frontend/src/components/ui/**` 为 shadcn-vue 生成代码，**允许修改视觉样式**（颜色/尺寸/间距/圆角/阴影/透明度/边框/过渡动画等），**不得**改动逻辑/props API/事件/插槽/a11y 语义；修改处须加中文注释 `// shadcn-vue 生成，本地修改：<说明>`，并在 `/workspace/MODIFICATIONS.md` 登记。如需引入新 UI 库（含 naive-ui / dompurify / unplugin-vue-components 等），须在 PR 说明中给出明确理由，并在 `/workspace/MODIFICATIONS.md` 登记。
+
 ### 数据库与认证
 - **数据库**：Cloudflare D1（SQLite 兼容），binding 名 `DB`，库名 `sun-panel-db`。**D1 是唯一持久化存储**。
 - **认证**：JWT HMAC-SHA256，基于 Web Crypto API 实现（`src/modules/shared/jwt.ts`），Token 有效期 7 天。
@@ -96,7 +98,7 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 │   ├── package.json、vite.config.ts、tsconfig.json、components.json
 │   ├── src/
 │   │   ├── main.ts、App.vue、env.d.ts
-│   │   ├── components/ui/              # shadcn-vue 生成组件（禁止修改源码）
+│   │   ├── components/ui/              # shadcn-vue 生成组件（视觉样式可改，见 §5）
 │   │   ├── modules/                    # 业务模块（auth/panel/users/settings，每个含 api.ts + types.ts）
 │   │   ├── views/                      # 页面（login/home/exception 等）
 │   │   ├── hooks/                      # 组合式函数（useTheme 等）
@@ -233,7 +235,7 @@ const body = c.var.validatedBody as CreateFooInput
 - 组件位于 `frontend/src/components/ui/<name>/`，每个目录有 `index.ts` 统一导出
 - 导入方式：`import { Button } from '@/components/ui/button'`
 - `components.json` 配置：`style=new-york`、`baseColor=neutral`、`cssVariables=true`、`iconLibrary=lucide`、Tailwind CSS 指向 `src/styles/main.css`
-- **禁止修改** `frontend/src/components/ui/**` 下的组件源码——这些是 shadcn-vue 生成代码
+- **允许修改视觉样式**：`frontend/src/components/ui/**` 下为 shadcn-vue 生成代码，**允许修改视觉样式**（颜色/尺寸/间距/圆角/阴影/透明度/边框/过渡动画等），**不得**改动逻辑/props API/事件/插槽/a11y 语义；修改处须加中文注释 `// shadcn-vue 生成，本地修改：<说明>`，并在 `/workspace/MODIFICATIONS.md` 登记。
 
 ### 新增 UI 组件
 ```bash
@@ -254,7 +256,7 @@ cd frontend && pnpm dlx shadcn-vue@latest add <name>
   toast.success('保存成功')
   toast.error('保存失败')
   ```
-- 对话框使用 shadcn `Dialog`，禁止使用 naive-ui 的 `useDialog`
+- 对话框使用 shadcn `Dialog`
 
 ### 主题
 - 通过 CSS 变量 + `<html>` 上的 `dark` class 切换（见 `frontend/src/hooks/useTheme.ts`），不再依赖 store 驱动样式
@@ -264,7 +266,7 @@ cd frontend && pnpm dlx shadcn-vue@latest add <name>
 
 ### 样式约束
 - **禁止内联样式** `style="..."`；动态样式用 `:style="{ '--var': value }"` 绑定 CSS 变量
-- **禁止修改** `frontend/src/components/ui/**` 源码
+- **生成组件仅改视觉样式**：`frontend/src/components/ui/**` 可改视觉样式，不得改逻辑/props/a11y；修改须加注释并在 `/workspace/MODIFICATIONS.md` 登记
 
 ---
 
@@ -372,10 +374,9 @@ feat(panel): 新增图标批量排序接口
 - ❌ 不得硬编码 `JWT_SECRET`、`CF_API_TOKEN`、`CF_ACCOUNT_ID`、`CF_D1_DATABASE_ID` 到源码
 - ❌ 不得添加图片代理、URL 抓取等会发起服务端外部请求的 SSRF 功能（如需外部图片，前端直连目标 URL 或公开 favicon 服务）
 - ❌ 不得恢复用户公开注册接口（`/register`）——私有面板场景，用户由管理员后台创建
-- ❌ 不得引入 `naive-ui`、`dompurify`、`unplugin-vue-components`
 - ❌ 不得新增内联样式（`style="..."`）——动态样式用 `:style` 绑定 CSS 变量
 - ❌ 不得跨模块直接引用其他模块的内部实现（`service.ts` / `validator.ts` / `routes.ts`）——只通过 `shared/`、共享类型、HTTP API 通信
-- ❌ 不得修改 `frontend/src/components/ui/**` 下的 shadcn-vue 组件源码——这些是生成代码
+- ❌ 不得修改 `frontend/src/components/ui/**` 生成组件的逻辑/props API/事件/插槽/a11y 语义（视觉样式可改，须加注释并在 `/workspace/MODIFICATIONS.md` 登记）
 - ❌ 不得让 GitHub Secret 名称使用 `GITHUB_` 前缀（保留给 GitHub 内部）
 - ❌ 不得在 `wrangler.toml` 写真实 `database_id`——保持 `__D1_DATABASE_ID__` 占位符
 - ❌ **不得引入 KV / R2 / 其他数据库**——D1 是唯一持久化存储（session/缓存等临时数据可用内存或 `c.var` 上下文，但不得持久化到非 D1 存储）
