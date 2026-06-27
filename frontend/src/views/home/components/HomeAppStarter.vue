@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, defineAsyncComponent, h, type Component } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,15 +11,42 @@ import { saveGroup, deleteGroups } from '@/modules'
 import AppStarterSidebar from './AppStarterSidebar.vue'
 import type { SearchEngineConfig, SiteConfig, ItemInfo, ItemIconGroup } from '@/modules/panel/types'
 
-// 8 个 Panel 改为按需加载：首屏只下载当前激活 Tab 的 chunk，其余在切换时再拉取
-const UsersManage = defineAsyncComponent(() => import('@/components/apps/Users/index.vue'))
-const PanelUserInfo = defineAsyncComponent(() => import('./panels/PanelUserInfo.vue'))
-const PanelStyleSettings = defineAsyncComponent(() => import('./panels/PanelStyleSettings.vue'))
-const PanelAnnounceSettings = defineAsyncComponent(() => import('./panels/PanelAnnounceSettings.vue'))
-const PanelGroupManage = defineAsyncComponent(() => import('./panels/PanelGroupManage.vue'))
-const PanelImportExport = defineAsyncComponent(() => import('./panels/PanelImportExport.vue'))
-const PanelSiteSettings = defineAsyncComponent(() => import('./panels/PanelSiteSettings.vue'))
-const PanelSearchSettings = defineAsyncComponent(() => import('./panels/PanelSearchSettings.vue'))
+// ponytail: 轻量占位，避免 async chunk 拉取期间白屏；如需更丰富骨架屏可替换为 Skeleton 组件
+const PanelLoading: Component = () => h('div', { class: 'flex items-center justify-center py-12 text-sm text-muted-foreground' }, '加载中...')
+
+// 8 个 Panel 改为按需加载：首屏只下载当前激活 Tab 的 chunk，其余在切换时再拉取；配 loadingComponent 避免 chunk 拉取期间白屏
+const UsersManage = defineAsyncComponent({
+  loader: () => import('@/components/apps/Users/index.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelUserInfo = defineAsyncComponent({
+  loader: () => import('./panels/PanelUserInfo.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelStyleSettings = defineAsyncComponent({
+  loader: () => import('./panels/PanelStyleSettings.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelAnnounceSettings = defineAsyncComponent({
+  loader: () => import('./panels/PanelAnnounceSettings.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelGroupManage = defineAsyncComponent({
+  loader: () => import('./panels/PanelGroupManage.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelImportExport = defineAsyncComponent({
+  loader: () => import('./panels/PanelImportExport.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelSiteSettings = defineAsyncComponent({
+  loader: () => import('./panels/PanelSiteSettings.vue'),
+  loadingComponent: PanelLoading,
+})
+const PanelSearchSettings = defineAsyncComponent({
+  loader: () => import('./panels/PanelSearchSettings.vue'),
+  loadingComponent: PanelLoading,
+})
 
 interface App {
   name: string
@@ -174,7 +201,7 @@ function handleGroupSaved() {
         <div class="flex-1 min-w-0 overflow-hidden @container" :style="{ height: layoutHeight }">
           <div class="h-full overflow-auto p-3 sm:p-4">
             <!-- Tab 切换淡入过渡 + KeepAlive 缓存：避免重复 onMounted 请求 -->
-            <Transition name="tab-fade" mode="out-in">
+            <Transition name="tab-fade">
               <KeepAlive>
                 <!-- KeepAlive 直接包裹 v-if 组件链（中间无 :key div），确保切回 Tab 复用 Panel 实例 -->
                 <!-- ====== 我的信息 ====== -->
@@ -217,9 +244,7 @@ function handleGroupSaved() {
                 />
 
                 <!-- ====== 用户管理 ====== -->
-                <div v-if="activeApp === 'Users'" class="flex flex-col gap-4">
-                  <UsersManage />
-                </div>
+                <UsersManage v-if="activeApp === 'Users'" />
 
                 <!-- ====== 站点设置 ====== -->
                 <PanelSiteSettings

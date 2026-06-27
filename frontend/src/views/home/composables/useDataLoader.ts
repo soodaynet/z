@@ -149,6 +149,8 @@ export function useDataLoader(options: {
       }
     } catch (e) {
       console.error(e)
+      // ponytail: /init 失败时也放行壁纸回退与 panel 默认渲染，避免永久卡在未就绪态
+      markDataReady()
     } finally {
       loading.value = false
     }

@@ -76,15 +76,22 @@ export class PanelService {
    * 获取用户全部面板数据（分组、图标、面板配置）
    * 一次查询替代多次 API 调用，减少网络往返
    * @param userId 用户 ID
-   * @param panelJson 已查得的 panel_json 字符串，传入时跳过 user_configs 查询（/init 复用）
+   * @param panelJson panel_json 处理策略：
+   *   - undefined：查询 user_configs（默认行为，/panel/getAllData 端点用）
+   *   - 字符串：复用，跳过 user_configs 查询（/init 复用已查得的 panelJson）
+   *   - null：跳过 user_configs 查询且不解析 panelConfig（/init 单轮并行用，调用方需自行赋值 panelConfig）
    */
-  async getAllData(userId: number, panelJson?: string): Promise<AllDataResponse> {
-    // panelJson 由调用方（/init）已查得时直接复用，避免重复查询 user_configs
-    const configPromise = panelJson !== undefined
-      ? Promise.resolve(panelJson)
-      : queryFirst<{ panel_json: string }>(this.db,
+  async getAllData(userId: number, panelJson?: string | null): Promise<AllDataResponse> {
+    // panelJson === null：明确跳过 user_configs 查询且不解析 panelConfig（/init 单轮并行）
+    // panelJson === undefined：查询 user_configs（默认行为）
+    // panelJson 为字符串：复用（/init 复用已查得的 panelJson）
+    const configPromise = panelJson === undefined
+      ? queryFirst<{ panel_json: string }>(this.db,
         'SELECT panel_json FROM user_configs WHERE user_id = ?', userId)
           .then(row => row?.panel_json ?? '')
+      : panelJson === null
+        ? Promise.resolve(null)
+        : Promise.resolve(panelJson)
 
     const [groups, iconRows, panelJsonStr] = await Promise.all([
       queryAll<ItemIconGroupRow>(this.db,
