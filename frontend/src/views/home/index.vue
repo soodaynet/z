@@ -343,7 +343,6 @@ watch(() => authStore.isLoggedIn, (val) => {
         :visible-groups="visibleGroups"
         :search-engine-config="searchEngineConfig"
         @open-url="openUrl"
-        @engine-changed="handleEngineChanged"
       />
 
       <!-- 内容区域（始终渲染，loading 结束后图标自动填充） -->
