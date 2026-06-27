@@ -10,12 +10,6 @@
 
 Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + Vue 3** 的个人导航面板应用。整体定位于「一键部署到 Cloudflare、零服务器运维的私有导航面板」：用户登录后可管理图标分组、自定义面板样式与搜索引擎，管理员可管理系统设置与用户。
 
-当前架构状态：
-- 后端已完成**插件式模块化架构重构**：所有业务逻辑以模块形式注册到全局 `ModuleRegistry`，模块高内聚低耦合。
-- 前端已完成 **shadcn-vue 现代化迁移**：移除 naive-ui，统一使用 shadcn-vue + Reka UI + Tailwind CSS 4。
-- 数据全部持久化到 Cloudflare D1（唯一存储），不依赖 KV / R2 / 其他数据库。
-- 认证基于 JWT（HMAC-SHA256），无公开注册接口，用户由管理员后台创建。
-
 ---
 
 ## 2. 技术栈版本清单
@@ -93,7 +87,7 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 │   │   ├── users/                      # 用户管理（usersAdminModule + userSelfModule）
 │   │   └── settings/                   # 系统设置
 │   │   （每个模块自包含：index.ts/routes.ts/service.ts/validator.ts/types.ts）
-│   └── （旧 routes/、services/、utils/、middleware/、validators/、models/ 已废弃，仅为向后兼容保留，不得主动删除）
+│   └── （旧 routes/、services/、utils/、middleware/、validators/、models/ 历史目录，保留以备参考）
 ├── frontend/                           # Vue 3 前端（pnpm 包名：sun-panel-frontend）
 │   ├── package.json、vite.config.ts、tsconfig.json、components.json
 │   ├── src/
@@ -107,7 +101,7 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 │   │   ├── router/、lib/utils.ts（cn helper）
 │   │   ├── styles/main.css（Tailwind 4 @theme 指令）、global.css
 │   │   ├── utils/                      # 工具函数（faviconUtils、importExport、requestCache、storageKeys 等）
-│   │   └── （旧 api/ 目录已废弃，仅为向后兼容保留，不得主动删除）
+│   │   └── （旧 api/ 目录，历史保留以备参考）
 ├── .github/workflows/
 │   ├── pr-check.yml                    # PR 检查（typecheck + build + lint，pnpm 10.15.1 + Node 24）
 │   └── deploy-worker.yml               # 推送 main 自动部署
@@ -372,7 +366,7 @@ feat(panel): 新增图标批量排序接口
 > 以下行为**严格禁止**，违反将破坏架构或引入安全风险。
 
 - ❌ 不得硬编码 `JWT_SECRET`、`CF_API_TOKEN`、`CF_ACCOUNT_ID`、`CF_D1_DATABASE_ID` 到源码
-- ❌ 不得添加图片代理、URL 抓取等会发起服务端外部请求的 SSRF 功能（如需外部图片，前端直连目标 URL 或公开 favicon 服务）
+- ❌ 不得新增未遵循 `docs/ssrf-policy.md` 规范的 SSRF 功能（URL 校验、超时、缓存等强制约束）——允许 SSRF 但必须合规
 - ❌ 不得恢复用户公开注册接口（`/register`）——私有面板场景，用户由管理员后台创建
 - ❌ 不得新增内联样式（`style="..."`）——动态样式用 `:style` 绑定 CSS 变量
 - ❌ 不得跨模块直接引用其他模块的内部实现（`service.ts` / `validator.ts` / `routes.ts`）——只通过 `shared/`、共享类型、HTTP API 通信
@@ -489,6 +483,9 @@ pnpm run typecheck && pnpm --filter sun-panel-frontend run typecheck && pnpm run
 ## 参考文档
 - `README.md` — 项目说明
 - `AGENTS.md` — 子代理协作指引（与本文件保持一致，两者互为补充）
+- `docs/ssrf-policy.md` — SSRF 安全使用规范（URL 校验、超时、缓存等强制约束）
+- `docs/dependencies.md` — 后端与前端依赖清单与用途说明
+- `docs/modules.md` — 后端与前端模块结构与职责说明
 - `wrangler.toml` — Cloudflare Workers 配置（含密钥与路由说明注释）
 - `schema.sql` — D1 数据库表结构
 - `.github/workflows/` — CI/CD 工作流

@@ -23,7 +23,7 @@
 - **保留向后兼容**：旧 `src/routes/`、`src/services/`、`src/validators/`、`src/utils/`、`src/middleware/`、`src/models/` 与 `frontend/src/api/` 目录暂保留，**不得**主动删除。
 - **验证后提交**：提交前必须运行 `pnpm run typecheck` + `pnpm run lint` + `pnpm --filter sun-panel-frontend run build` 全部通过。
 - **中文注释**：标识符用英文，注释用中文。
-- **不创建文档**：除非用户明确要求，**不得**主动创建 `.md` 文档。
+- **不创建文档**：除 `docs/` 下既定文档（`ssrf-policy.md`/`dependencies.md`/`modules.md` 等）外，**不得**主动创建 `.md` 文档。
 - **生成组件可改（仅视觉样式）**：`frontend/src/components/ui/**` 是 shadcn-vue 生成代码，**允许修改视觉样式**（颜色/尺寸/间距/圆角/阴影/透明度/边框/过渡动画等），**不得**改动逻辑/props API/事件/插槽/a11y 语义。修改处须加中文注释 `// shadcn-vue 生成，本地修改：<说明>`，并在 `/workspace/MODIFICATIONS.md` 登记。
 - **不假设依赖可用**：使用新库前先查 `package.json` / `frontend/package.json`，确认已安装。
 
@@ -168,8 +168,8 @@ PR 合并前**必须**全部通过：
 ## 6. 安全实践
 
 - **变量外置**：`JWT_SECRET`、`CF_API_TOKEN`、`CF_ACCOUNT_ID`、`CF_D1_DATABASE_ID` 全部通过 Cloudflare Secrets 或 GitHub Actions Secrets 管理，**不得**硬编码。
-- **无 SSRF**：**不得**添加图片代理、URL 抓取等会发起服务端外部请求的功能。如需外部图片，前端直连目标 URL 或公开 favicon 服务。
-  - **SSRF 白名单例外**：`/panel/itemIcon/getSiteFavicon` 接口为唯一允许的服务端抓取例外——抓取目标公开站点的 HTML，解析 favicon link 标签与站点元数据（title/description/OG 标签），受 `isValidUrl` 约束（屏蔽 localhost/回环/私网段），3s 超时，并通过 `cf: { cacheTtl: 3600 }` 利用 Cloudflare 边缘缓存。其他接口不得新增服务端外部请求。
+- **SSRF 规范化**：允许 SSRF 但必须遵循 `docs/ssrf-policy.md` 规范（URL 校验、超时、缓存、仅 GET、响应大小限制等强制约束）。如需外部图片，优先前端直连目标 URL 或公开 favicon 服务；服务端抓取须合规。
+  - **现有合规端点**：`GET /api/favicon-proxy`（代理 google favicon 服务，校验 domain，30 天缓存）、`POST /panel/itemIcon/getSiteFavicon`（抓取目标站点 HTML 解析 favicon + 元数据，`isValidUrl` 校验，3s 超时，1 小时缓存）。新增 SSRF 端点必须在 PR 说明中引用 `docs/ssrf-policy.md` 并补充到合规清单。
 - **无公开注册**：用户仅由管理员后台通过 `/panel/users/create` 创建，**不得**恢复 `/register` 接口。
 - **JWT 必填**：未配置 `JWT_SECRET` 时 Worker 启动失败（`src/modules/shared/env.ts` 校验），**不得**添加默认回退值。
 - **D1 唯一存储**：所有持久化数据存 Cloudflare D1（binding 名 `DB`，库名 `sun-panel-db`），**不得**引入 KV/R2/其他数据库。session/缓存等临时数据可用内存或 `c.var` 上下文，但不得持久化到非 D1 存储。
