@@ -166,10 +166,11 @@ onUnmounted(() => {
     <div
       v-if="isDropdownOpen && (localMatches.length > 0 || searchQuery.trim())"
       class="absolute left-0 right-0 mt-2 search-dropdown-glass rounded-xl border border-white/10 shadow-xl overflow-hidden text-white z-50"
+      @wheel.stop
     >
       <!-- 本地图标区 -->
       <div class="px-3 py-1.5 text-xs text-white/50 border-b border-white/10">{{ t('deskModule.searchBox.localIcons') }}</div>
-      <div v-if="localMatches.length > 0" class="max-h-64 overflow-y-auto">
+      <div v-if="localMatches.length > 0" class="max-h-64 overflow-y-auto search-scroll-hide">
         <button
           v-for="(item, i) in localMatches"
           :key="item.id || i"
@@ -188,12 +189,7 @@ onUnmounted(() => {
               referrerpolicy="no-referrer"
               @error="($event.target as HTMLImageElement).style.display = 'none'"
             />
-            <span
-              v-else
-              class="w-full h-full flex items-center justify-center text-xs font-bold"
-              :style="{ backgroundColor: item.icon?.backgroundColor || '#4a90d9' }"
-              >{{ item.icon?.text || item.title.charAt(0) }}</span
-            >
+            <!-- 无 src 图标显示空占位，保持容器尺寸避免布局抖动 -->
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm truncate">{{ item.title }}</div>
@@ -226,5 +222,13 @@ onUnmounted(() => {
   backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
   -webkit-backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+/* 隐藏本地图标列表滚动条，与主页面一致（可滚动但不显示） */
+.search-scroll-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.search-scroll-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

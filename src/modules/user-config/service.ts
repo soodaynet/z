@@ -74,4 +74,46 @@ export class UserConfigService {
         .run()
     }
   }
+
+  /** 仅更新 panel_json，search_engine_json 保持原值（局部更新） */
+  async updatePanel(userId: number, panelJson: string): Promise<void> {
+    const existing = await queryFirst<{ user_id: number }>(
+      this.db,
+      'SELECT user_id FROM user_configs WHERE user_id = ?',
+      userId,
+    )
+    if (existing) {
+      await this.db
+        .prepare("UPDATE user_configs SET panel_json = ?, updated_at = datetime('now') WHERE user_id = ?")
+        .bind(panelJson, userId)
+        .run()
+    } else {
+      // 不存在记录时插入，search_engine_json 用默认空对象
+      await this.db
+        .prepare('INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, ?)')
+        .bind(userId, panelJson, '{}')
+        .run()
+    }
+  }
+
+  /** 仅更新 search_engine_json，panel_json 保持原值（局部更新） */
+  async updateSearchEngine(userId: number, searchEngineJson: string): Promise<void> {
+    const existing = await queryFirst<{ user_id: number }>(
+      this.db,
+      'SELECT user_id FROM user_configs WHERE user_id = ?',
+      userId,
+    )
+    if (existing) {
+      await this.db
+        .prepare("UPDATE user_configs SET search_engine_json = ?, updated_at = datetime('now') WHERE user_id = ?")
+        .bind(searchEngineJson, userId)
+        .run()
+    } else {
+      // 不存在记录时插入，panel_json 用默认空对象
+      await this.db
+        .prepare('INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, ?)')
+        .bind(userId, '{}', searchEngineJson)
+        .run()
+    }
+  }
 }

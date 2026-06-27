@@ -34,11 +34,23 @@ router.post(
     if (user.visitMode === 1) return fail(c, '访客模式下不允许修改', 403)
 
     const { panel, searchEngine } = c.var.validatedBody as UserConfigSetBody
-    const panelJson = JSON.stringify(panel || {})
-    const searchEngineJson = JSON.stringify(searchEngine || {})
-
     const service = new UserConfigService(c.env.DB)
-    await service.set(user.userId, panelJson, searchEngineJson)
+
+    // 局部更新：仅更新实际传入的字段，未传字段保持原值
+    // 避免前端部分提交（仅传 panel 或仅传 searchEngine）时互相清空
+    const hasPanel = panel !== undefined
+    const hasSearchEngine = searchEngine !== undefined
+
+    if (hasPanel && hasSearchEngine) {
+      // 两者都传：用全量 set（向后兼容，一次 UPDATE）
+      await service.set(user.userId, JSON.stringify(panel), JSON.stringify(searchEngine))
+    } else if (hasPanel) {
+      await service.updatePanel(user.userId, JSON.stringify(panel))
+    } else if (hasSearchEngine) {
+      await service.updateSearchEngine(user.userId, JSON.stringify(searchEngine))
+    }
+    // 两者均未传：直接返回 ok（无操作）
+
     return ok(c, null)
   },
 )
