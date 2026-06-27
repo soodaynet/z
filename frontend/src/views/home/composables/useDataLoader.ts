@@ -38,6 +38,9 @@ export function useDataLoader(options: {
 
   const groups = ref<ItemGroup[]>([])
   const loading = ref(true)
+  // 首次数据就绪标志：初始 false，首次 loadInitData 成功后置 true 且不再重置。
+  // 用于门控搜索框/Logo 渲染，避免加载期间显示默认值后被真实配置替换的闪烁。
+  const initialLoaded = ref(false)
 
   /** 访客模式下仅显示 publicVisible !== 0 的分组，用户模式下显示全部分组 */
   const visibleGroups = computed(() => {
@@ -136,6 +139,9 @@ export function useDataLoader(options: {
         if (searchEngine) {
           onSearchEngineUpdated?.(searchEngine)
         }
+
+        // 首次加载成功后标记，刷新时不再重置（保持搜索框/Logo 不消失）
+        initialLoaded.value = true
       }
     } catch (e) {
       console.error(e)
@@ -154,6 +160,7 @@ export function useDataLoader(options: {
   return {
     groups,
     loading,
+    initialLoaded,
     visibleGroups,
     loadData,
     loadInitData,

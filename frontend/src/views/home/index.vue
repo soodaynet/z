@@ -92,7 +92,7 @@ function handleEngineChanged(cfg: SearchEngineConfig) {
   searchEngineConfig.value = cfg
 }
 
-const { groups, visibleGroups, loadData, loadInitData, refreshAll } = useDataLoader({
+const { groups, visibleGroups, initialLoaded, loadData, loadInitData, refreshAll } = useDataLoader({
   authStore,
   panelState,
   siteConfig,
@@ -248,11 +248,14 @@ function handleGroupSaved() {
   refreshAll()
 }
 
+// 提前在 setup 阶段发起 /init 请求，与组件挂载并行，缩短首屏数据就绪时间
+const initPromise = loadInitData()
+
 onMounted(async () => {
   syncGlassVars()
   buildEagerSet()
   // 一次 /init 调用替代 3 次 API 请求，显著减少首次加载的网络往返
-  await loadInitData()
+  await initPromise
   // 数据就绪后一次性预连接所有图标 origin（替代 HomeItemCard 每卡片 watch）
   preconnectGroupIcons(groups.value)
   startAnnouncementTimer()
@@ -326,12 +329,12 @@ watch(() => authStore.isLoggedIn, (val) => {
     <!-- 主内容区域 -->
     <div class="relative z-10 mx-auto flex-1 w-full" :style="containerStyle">
 
-      <!-- Logo + 访客标识（流式居中） -->
-      <HomeLogo />
+      <!-- Logo + 访客标识（流式居中）：首次数据就绪前不渲染，避免默认值闪烁 -->
+      <HomeLogo v-if="initialLoaded" />
 
-      <!-- 搜索框 -->
+      <!-- 搜索框：首次数据就绪前不渲染，避免显示默认搜索框后被真实 searchBoxShow 配置替换 -->
       <HomeSearchBar
-        v-if="panelState.panelConfig.searchBoxShow"
+        v-if="initialLoaded && panelState.panelConfig.searchBoxShow"
         :visible-groups="visibleGroups"
         :search-engine-config="searchEngineConfig"
         @open-url="openUrl"
