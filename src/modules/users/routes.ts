@@ -5,7 +5,6 @@ import { validate } from '../shared/validate'
 import { ok, fail } from '../shared/response'
 import type { AppContext } from '../types'
 import { UserService } from './service'
-import { SettingsService } from '../settings/service'
 import {
   userListSchema,
   userCreateSchema,
@@ -49,8 +48,11 @@ adminRouter.post('/deletes', authMiddleware, adminMiddleware, validate(userDelet
 })
 
 adminRouter.post('/getPublicVisitUser', authMiddleware, adminMiddleware, async (c) => {
-  const settings = new SettingsService(c.env.DB)
-  const data = await settings.getPublicVisitUser()
+  const service = new UserService(c.env.DB)
+  const userId = await service.getPublicVisitUserId()
+  if (!userId) return ok(c, null)
+  // 复用本模块的 getUserInfo 返回前端用户信息（不跨模块调用 SettingsService）
+  const data = await service.getUserInfo(userId)
   return ok(c, data)
 })
 
@@ -61,14 +63,8 @@ adminRouter.post(
   validate(publicVisitUserSchema),
   async (c) => {
     const { userId } = c.var.validatedBody as z.infer<typeof publicVisitUserSchema>
-    const settings = new SettingsService(c.env.DB)
-
-    if (userId === null || userId === undefined) {
-      await settings.setPublicVisitUser(null)
-      return ok(c, null)
-    }
-
-    await settings.setPublicVisitUser(userId)
+    const service = new UserService(c.env.DB)
+    await service.setPublicVisitUserId(userId ?? null)
     return ok(c, null)
   },
 )

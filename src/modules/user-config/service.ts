@@ -17,22 +17,24 @@ export class UserConfigService {
 
   /**
    * 获取用户配置
-   * - 校验用户存在
+   * - 校验用户存在（除非 skipUserCheck=true）
    * - 若 user_configs 无记录，则插入空记录并返回空配置
    * @param userId 用户 ID
+   * @param skipUserCheck 跳过 users 表存在性校验（用于 /init 上下文，中间件已校验）
    * @throws AppError 用户不存在时抛出 400 错误
    */
-  async get(userId: number): Promise<UserConfigData> {
-    const [user, row] = await Promise.all([
-      queryFirst<{ id: number }>(this.db, 'SELECT id FROM users WHERE id = ?', userId),
-      queryFirst<UserConfigRow>(
-        this.db,
-        'SELECT panel_json, search_engine_json FROM user_configs WHERE user_id = ?',
-        userId,
-      ),
-    ])
+  async get(userId: number, skipUserCheck?: boolean): Promise<UserConfigData> {
+    // /init 上下文已由中间件校验用户存在，跳过冗余 SELECT users 查询
+    const row = await queryFirst<UserConfigRow>(
+      this.db,
+      'SELECT panel_json, search_engine_json FROM user_configs WHERE user_id = ?',
+      userId,
+    )
 
-    if (!user) throw AppError.badRequest('用户不存在')
+    if (!skipUserCheck) {
+      const user = await queryFirst<{ id: number }>(this.db, 'SELECT id FROM users WHERE id = ?', userId)
+      if (!user) throw AppError.badRequest('用户不存在')
+    }
 
     if (!row) {
       await this.db.prepare('INSERT INTO user_configs (user_id) VALUES (?)').bind(userId).run()
@@ -47,73 +49,51 @@ export class UserConfigService {
 
   /**
    * 保存用户配置（存在则更新，不存在则插入）
+   *
+   * 使用 INSERT ... ON CONFLICT 单语句，替代旧的 SELECT-then-UPDATE/INSERT 反模式（2 次查询）。
    * @param userId 用户 ID
    * @param panelJson 面板配置 JSON 字符串
    * @param searchEngineJson 搜索引擎配置 JSON 字符串
    */
   async set(userId: number, panelJson: string, searchEngineJson: string): Promise<void> {
-    const existing = await queryFirst<{ user_id: number }>(
-      this.db,
-      'SELECT user_id FROM user_configs WHERE user_id = ?',
-      userId,
-    )
-
-    if (existing) {
-      await this.db
-        .prepare(
-          "UPDATE user_configs SET panel_json = ?, search_engine_json = ?, updated_at = datetime('now') WHERE user_id = ?",
-        )
-        .bind(panelJson, searchEngineJson, userId)
-        .run()
-    } else {
-      await this.db
-        .prepare(
-          'INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, ?)',
-        )
-        .bind(userId, panelJson, searchEngineJson)
-        .run()
-    }
+    await this.db
+      .prepare(
+        `INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, ?)
+         ON CONFLICT(user_id) DO UPDATE SET panel_json = excluded.panel_json, search_engine_json = excluded.search_engine_json, updated_at = datetime('now')`,
+      )
+      .bind(userId, panelJson, searchEngineJson)
+      .run()
   }
 
-  /** 仅更新 panel_json，search_engine_json 保持原值（局部更新） */
+  /**
+   * 仅更新 panel_json，search_engine_json 保持原值（局部更新）
+   *
+   * 使用 INSERT ... ON CONFLICT 单语句：不存在记录时插入（search_engine_json 用默认 '{}'），
+   * 存在时仅更新 panel_json，不动 search_engine_json。
+   */
   async updatePanel(userId: number, panelJson: string): Promise<void> {
-    const existing = await queryFirst<{ user_id: number }>(
-      this.db,
-      'SELECT user_id FROM user_configs WHERE user_id = ?',
-      userId,
-    )
-    if (existing) {
-      await this.db
-        .prepare("UPDATE user_configs SET panel_json = ?, updated_at = datetime('now') WHERE user_id = ?")
-        .bind(panelJson, userId)
-        .run()
-    } else {
-      // 不存在记录时插入，search_engine_json 用默认空对象
-      await this.db
-        .prepare('INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, ?)')
-        .bind(userId, panelJson, '{}')
-        .run()
-    }
+    await this.db
+      .prepare(
+        `INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, '{}')
+         ON CONFLICT(user_id) DO UPDATE SET panel_json = excluded.panel_json, updated_at = datetime('now')`,
+      )
+      .bind(userId, panelJson)
+      .run()
   }
 
-  /** 仅更新 search_engine_json，panel_json 保持原值（局部更新） */
+  /**
+   * 仅更新 search_engine_json，panel_json 保持原值（局部更新）
+   *
+   * 使用 INSERT ... ON CONFLICT 单语句：不存在记录时插入（panel_json 用默认 '{}'），
+   * 存在时仅更新 search_engine_json，不动 panel_json。
+   */
   async updateSearchEngine(userId: number, searchEngineJson: string): Promise<void> {
-    const existing = await queryFirst<{ user_id: number }>(
-      this.db,
-      'SELECT user_id FROM user_configs WHERE user_id = ?',
-      userId,
-    )
-    if (existing) {
-      await this.db
-        .prepare("UPDATE user_configs SET search_engine_json = ?, updated_at = datetime('now') WHERE user_id = ?")
-        .bind(searchEngineJson, userId)
-        .run()
-    } else {
-      // 不存在记录时插入，panel_json 用默认空对象
-      await this.db
-        .prepare('INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, ?, ?)')
-        .bind(userId, '{}', searchEngineJson)
-        .run()
-    }
+    await this.db
+      .prepare(
+        `INSERT INTO user_configs (user_id, panel_json, search_engine_json) VALUES (?, '{}', ?)
+         ON CONFLICT(user_id) DO UPDATE SET search_engine_json = excluded.search_engine_json, updated_at = datetime('now')`,
+      )
+      .bind(userId, searchEngineJson)
+      .run()
   }
 }

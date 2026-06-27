@@ -34,13 +34,15 @@ itemIconRouter.post('/getListByGroupId', validate(getListByGroupIdSchema), async
 /**
  * 获取站点图标 (favicon)
  * POST /panel/itemIcon/getSiteFavicon
+ *
+ * 响应可公开缓存（结果仅依赖入参 url，与用户无关）：CDN 缓存 1h，浏览器缓存 10min。
  */
 itemIconRouter.post('/getSiteFavicon', validate(faviconSchema), async (c) => {
   const { url } = c.var.validatedBody as { url: string }
 
   const service = new PanelService(c.env.DB)
   const result = await service.getSiteFavicon(url)
-  c.header('Cache-Control', 'private, max-age=600')
+  c.header('Cache-Control', 'public, max-age=600, s-maxage=3600')
   return ok(c, result)
 })
 

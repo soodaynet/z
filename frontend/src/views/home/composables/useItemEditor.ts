@@ -2,11 +2,12 @@ import { ref } from 'vue'
 import { toast } from '@/components/ui/sonner'
 import { addItems, editItem } from '@/modules'
 import { invalidateCacheByPrefix } from '@/utils/requestCache'
+import type { ItemInfo } from '@/modules/panel/types'
 
 export function useItemEditor(loadData: () => Promise<void>) {
 
   const editModalShow = ref(false)
-  const editingItem = ref<Panel.ItemInfo>({
+  const editingItem = ref<ItemInfo>({
     title: '',
     url: '',
     openMethod: 2,
@@ -28,7 +29,7 @@ export function useItemEditor(loadData: () => Promise<void>) {
     editModalShow.value = true
   }
 
-  function openEditItem(item: Panel.ItemInfo) {
+  function openEditItem(item: ItemInfo) {
     editingItem.value = { ...item }
     editingGroupId.value = item.itemIconGroupId
     editModalShow.value = true
@@ -41,7 +42,7 @@ export function useItemEditor(loadData: () => Promise<void>) {
       return
     }
     try {
-      const res = item.id ? await editItem<Panel.ItemInfo>(item) : await addItems<Panel.ItemInfo[]>([item])
+      const res = item.id ? await editItem<ItemInfo>(item) : await addItems<ItemInfo[]>([item])
       if (res.code === 0) {
         toast.success('保存成功')
         editModalShow.value = false

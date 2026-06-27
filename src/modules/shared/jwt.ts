@@ -13,10 +13,22 @@ function getSecretKey(customSecret?: string): string {
   return customSecret
 }
 
+// ponytail: 单实例单 secret 假设，secret 轮换需重启 Worker
+let cachedKey: CryptoKey | null = null
+let cachedSecret = ''
+
 async function getKey(secret?: string): Promise<CryptoKey> {
+  const secretKey = getSecretKey(secret)
+  // secret 未变时复用已缓存的 CryptoKey，避免每请求重复 importKey
+  if (cachedKey && cachedSecret === secretKey) {
+    return cachedKey
+  }
   const encoder = new TextEncoder()
-  const keyData = encoder.encode(getSecretKey(secret))
-  return crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
+  const keyData = encoder.encode(secretKey)
+  const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
+  cachedKey = key
+  cachedSecret = secretKey
+  return key
 }
 
 function base64UrlEncode(buffer: ArrayBuffer): string {

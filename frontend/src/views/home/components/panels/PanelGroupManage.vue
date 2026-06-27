@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { VueDraggable } from 'vue-draggable-plus'
 import { saveGroupSort } from '@/modules'
+import type { ItemInfo } from '@/modules/panel/types'
 
 interface ItemGroup {
   id?: number
   title: string
   sort?: number
-  items?: Panel.ItemInfo[]
+  items?: ItemInfo[]
   publicVisible?: number
   hoverStatus?: boolean
   sortStatus?: boolean

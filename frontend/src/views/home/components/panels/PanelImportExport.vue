@@ -13,6 +13,7 @@ import {
   type ExportGroup,
   type ExportData,
 } from '@/utils/importExport'
+import type { ItemInfo, ItemIcon, ItemIconGroup } from '@/modules/panel/types'
 
 const importExportLoading = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
@@ -22,8 +23,8 @@ async function handleExport() {
   try {
     const res = await cachedRequest('panel:allData', () =>
       getAllData<{
-        groups: Panel.ItemIconGroup[]
-        itemsMap: Record<number, Panel.ItemInfo[]>
+        groups: ItemIconGroup[]
+        itemsMap: Record<number, ItemInfo[]>
       }>(),
     )
     if (res.code === 0 && res.data) {
@@ -85,7 +86,7 @@ async function handleImportFile(e: Event) {
  * - null/undefined/非对象 → null（后端 .nullish() 接受）
  * - 对象缺 itemType → 补默认值 0（图像类型，前端渲染只看 src/text/backgroundColor，itemType 不参与渲染）
  */
-function normalizeIcon(icon: unknown): Panel.ItemIcon | null {
+function normalizeIcon(icon: unknown): ItemIcon | null {
   if (!icon || typeof icon !== 'object') return null
   const obj = icon as Record<string, unknown>
   return {
@@ -101,12 +102,12 @@ async function importData(data: ExportData) {
   const batchSize = 50
   for (const g of data.icons) {
     // 创建分组，失败立即抛错（触发外层 catch 显示错误 toast）
-    const groupRes = await saveGroup<Panel.ItemIconGroup>({ title: g.title, sort: g.sort, publicVisible: g.publicVisible ?? 1 })
+    const groupRes = await saveGroup<ItemIconGroup>({ title: g.title, sort: g.sort, publicVisible: g.publicVisible ?? 1 })
     if (groupRes.code !== 0 || !groupRes.data?.id) {
       throw new Error(groupRes.msg || `分组「${g.title}」创建失败`)
     }
     const groupId = groupRes.data.id
-    const items: Panel.ItemInfo[] = g.children.map((item) => ({
+    const items: ItemInfo[] = g.children.map((item) => ({
       ...item,
       icon: normalizeIcon(item.icon),
       itemIconGroupId: groupId,

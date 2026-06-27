@@ -1,7 +1,7 @@
-export interface LoginRequest {
-  username: string
-  password: string
-}
+import type { z } from 'zod'
+import type { loginSchema } from './validator'
+
+export type LoginRequest = z.infer<typeof loginSchema>
 
 export interface LoginResponse {
   token: string

@@ -118,4 +118,4 @@ export function useToast() {
   }
 }
 
-export { toast, dismiss, dismissToasts }
+export { toast, dismiss }

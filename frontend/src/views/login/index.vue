@@ -10,6 +10,7 @@ import { login } from '@/modules/auth/api'
 import { useAuthStore, VisitMode } from '@/store/modules/auth'
 import { TOKEN_KEY } from '@/utils/storageKeys'
 import { useLoginPage } from './composables/useLoginPage'
+import type { UserInfo } from '@/modules/auth/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -31,7 +32,7 @@ async function handleLogin() {
   }
   loading.value = true
   try {
-    const res = await login<{ token: string; userInfo: User.Info }>(username.value, password.value)
+    const res = await login<{ token: string; userInfo: UserInfo }>(username.value, password.value)
     if (res.code === 0) {
       authStore.loginSuccess(res.data.token, res.data.userInfo)
       toast.success('登录成功')

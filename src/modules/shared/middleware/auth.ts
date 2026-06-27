@@ -3,6 +3,13 @@ import type { AppContext } from '../../types'
 import type { AuthUser } from '../types'
 import { verifyToken } from '../jwt'
 import { AppError } from '../errors'
+import * as cache from '../cache'
+
+/** 公开访问模式相关配置（缓存于 'public-visit-config'） */
+interface PublicVisitConfig {
+  publicUserIdValue: string | null
+  guestModeValue: string | null
+}
 
 // ========== 辅助函数 ==========
 
@@ -47,6 +54,9 @@ export const authMiddleware: MiddlewareHandler<AppContext> = async (c, next) => 
 
 /**
  * 公开模式中间件 - 优先使用登录 token，无 token 时使用公开访问账号
+ *
+ * 缓存策略：'public-visit-config' 与 'public-visit-user' TTL 60s，
+ * settings.saveAll / upsertSetting / setPublicVisitUser 时主动失效。
  */
 export const publicModeMiddleware: MiddlewareHandler<AppContext> = async (c, next) => {
   const db = c.env.DB
@@ -58,28 +68,38 @@ export const publicModeMiddleware: MiddlewareHandler<AppContext> = async (c, nex
     return
   }
 
-  // 查询公开模式设置
-  const settingsResult = await db
-    .prepare("SELECT config_name, config_value FROM system_settings WHERE config_name = 'panel_public_user_id' OR config_name = 'default_guest_mode'")
-    .all<{ config_name: string; config_value: string }>()
-  const rows = settingsResult.results
-  const publicUserIdValue = rows.find(r => r.config_name === 'panel_public_user_id')?.config_value ?? null
-  const guestModeValue = rows.find(r => r.config_name === 'default_guest_mode')?.config_value ?? null
+  // 查询公开模式设置（先查内存缓存，未命中再查 DB）
+  let config = cache.get<PublicVisitConfig>('public-visit-config')
+  if (config === undefined) {
+    const settingsResult = await db
+      .prepare("SELECT config_name, config_value FROM system_settings WHERE config_name = 'panel_public_user_id' OR config_name = 'default_guest_mode'")
+      .all<{ config_name: string; config_value: string }>()
+    const rows = settingsResult.results
+    config = {
+      publicUserIdValue: rows.find(r => r.config_name === 'panel_public_user_id')?.config_value ?? null,
+      guestModeValue: rows.find(r => r.config_name === 'default_guest_mode')?.config_value ?? null,
+    }
+    cache.set('public-visit-config', config, 60)
+  }
 
-  let targetUser: Record<string, unknown> | null = null
-
-  if (publicUserIdValue) {
-    const userId = parseInt(publicUserIdValue, 10)
-    if (!isNaN(userId)) {
+  // 查询目标用户行（先查内存缓存，未命中再查 DB；缓存值可为 null 表示已查过但无目标用户）
+  let targetUser = cache.get<Record<string, unknown> | null>('public-visit-user')
+  if (targetUser === undefined) {
+    targetUser = null
+    if (config.publicUserIdValue) {
+      const userId = parseInt(config.publicUserIdValue, 10)
+      if (!isNaN(userId)) {
+        targetUser = (await db
+          .prepare('SELECT id, username, name, head_image, role, status FROM users WHERE id = ?')
+          .bind(userId)
+          .first()) as Record<string, unknown> | null
+      }
+    } else if (config.guestModeValue === '1') {
       targetUser = (await db
-        .prepare('SELECT id, username, name, head_image, role, status FROM users WHERE id = ?')
-        .bind(userId)
+        .prepare('SELECT id, username, name, head_image, role, status FROM users WHERE role = 1 LIMIT 1')
         .first()) as Record<string, unknown> | null
     }
-  } else if (guestModeValue === '1') {
-    targetUser = (await db
-      .prepare('SELECT id, username, name, head_image, role, status FROM users WHERE role = 1 LIMIT 1')
-      .first()) as Record<string, unknown> | null
+    cache.set('public-visit-user', targetUser, 60)
   }
 
   if (targetUser) {

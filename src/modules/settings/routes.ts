@@ -57,13 +57,13 @@ router.post(
  * 获取所有设置（公开）
  * GET/POST /about
  * GET 请求免 CSRF 校验，更适合登录页获取只读站点信息；
- * CDN 不缓存（no-cache），避免错误/过期响应导致站点信息无法显示。
+ * 后端 getAll 已加 30s 内存缓存，CDN 缓存 30s 与之对齐，写入后至多 60s 全网一致。
  */
 async function handleAbout(c: Context<AppContext>) {
   const service = new SettingsService(c.env.DB)
   const settings = await service.getAll()
   c.header('Cache-Control', 'public, max-age=300, stale-while-revalidate=600')
-  c.header('CDN-Cache-Control', 'no-cache')
+  c.header('CDN-Cache-Control', 'max-age=30')
   return ok(c, settings)
 }
 

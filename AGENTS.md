@@ -20,7 +20,6 @@
 - **遵守模块边界**：不跨模块修改内部实现，只通过共享接口或 HTTP API 通信。
 - **不跨层修改**：前端不直接调用后端 `service.ts`，后端不直接操作前端 store。
 - **最小化修改**：只改完成任务所必需的文件，不做无关重构、不"顺手"优化。
-- **保留向后兼容**：旧 `src/routes/`、`src/services/`、`src/validators/`、`src/utils/`、`src/middleware/`、`src/models/` 与 `frontend/src/api/` 目录暂保留，**不得**主动删除。
 - **验证后提交**：提交前必须运行 `pnpm run typecheck` + `pnpm run lint` + `pnpm --filter sun-panel-frontend run build` 全部通过。
 - **中文注释**：标识符用英文，注释用中文。
 - **不创建文档**：除 `docs/` 下既定文档（`ssrf-policy.md`/`dependencies.md`/`modules.md` 等）外，**不得**主动创建 `.md` 文档。
@@ -75,8 +74,9 @@ frontend/src/modules/<name>/
 
 ### 共享代码位置
 
-- 后端共享工具与中间件放 `src/modules/shared/`（如 `db.ts`、`env.ts`、`errors.ts`、`jwt.ts`、`response.ts`、`middleware/*`）。
+- 后端共享工具与中间件放 `src/modules/shared/`（如 `db.ts`、`env.ts`、`errors.ts`、`jwt.ts`、`response.ts`、`cache.ts`、`middleware/*`）。
 - 前端共享工具放 `frontend/src/utils/`，组合式函数放 `frontend/src/hooks/`。
+- **内存缓存工具**位于 `src/modules/shared/cache.ts`，仅用于读多写少的非持久化数据（如 site-config / public-visit / settings），不得用于持久化存储。
 
 ### 不跨模块直接引用
 
@@ -148,6 +148,7 @@ PR 合并前**必须**全部通过：
 - [ ] 新增后端模块已在 `src/index.ts` 中正确 `registry.register()`
 - [ ] 提交信息符合 Conventional Commits 规范
 - [ ] 文档同步更新（如有 API 变更）
+- [ ] `schema.sql` 索引变更需同步提供 `migrations/YYYY-MM-DD-*.sql` 增量脚本
 
 > CI 工作流 `.github/workflows/pr-check.yml`（pnpm 10.15.1 + Node 24）会自动校验 typecheck / build / lint，本地提交前应先跑一遍。
 
@@ -229,3 +230,8 @@ pnpm --filter sun-panel-frontend run build        # 构建（含类型检查）
 # 提交前全套验证
 pnpm run typecheck && pnpm --filter sun-panel-frontend run typecheck && pnpm run lint && pnpm --filter sun-panel-frontend run build
 ```
+
+### 7.5 新增 SSRF / 缓存端点
+
+- 新增 SSRF / 缓存端点需在 PR 说明中引用 `docs/ssrf-policy.md` 并说明缓存策略（TTL / 失效条件 / 边缘缓存）。
+- 现有合规端点见 §6 安全实践「SSRF 规范化」清单，新增端点须补充到该清单。

@@ -2,9 +2,10 @@
 import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-vue-next'
+import type { ItemInfo } from '@/modules/panel/types'
 
 const props = defineProps<{
-  item: Panel.ItemInfo
+  item: ItemInfo
   editable: boolean
   isEditMode: boolean
   /** 是否在首屏可见，预加载图标 */
@@ -12,9 +13,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'click', item: Panel.ItemInfo): void
-  (e: 'edit', item: Panel.ItemInfo): void
-  (e: 'delete', item: Panel.ItemInfo): void
+  (e: 'click', item: ItemInfo): void
+  (e: 'edit', item: ItemInfo): void
+  (e: 'delete', item: ItemInfo): void
 }>()
 
 const errored = ref(false)

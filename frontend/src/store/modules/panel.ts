@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
+import type { PanelConfig, PanelConfigStyleEnum } from '@/modules/panel/types'
 
 export interface PanelState {
-  panelConfig: Panel.panelConfig
+  panelConfig: PanelConfig
 }
 
-const defaultPanelConfig: Panel.panelConfig = {
+const defaultPanelConfig: PanelConfig = {
   backgroundImageSrc: '',
   backgroundBlur: 0,
   backgroundMaskNumber: 0.3,
-  iconStyle: 'text' as Panel.PanelPanelConfigStyleEnum,
+  iconStyle: 'text' as PanelConfigStyleEnum,
   iconTextColor: '#ffffff',
   iconTextInfoHideDescription: false,
   iconTextIconHideTitle: false,
@@ -42,12 +43,8 @@ export const usePanelState = defineStore('panel', {
   }),
 
   actions: {
-    setPanelConfig(config: Panel.panelConfig) {
+    setPanelConfig(config: PanelConfig) {
       this.panelConfig = { ...defaultPanelConfig, ...config }
-    },
-
-    updatePanelConfigFromCloud(config: Panel.panelConfig) {
-      this.setPanelConfig(config)
     },
   },
 })

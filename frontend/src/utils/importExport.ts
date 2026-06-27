@@ -8,6 +8,8 @@
  *   2. Cloudflare Worker 版本 — 本项目的导出
  *      (appName="Sun-Panel", type="sun-panel-export")
  */
+import type { ItemIcon } from '@/modules/panel/types'
+
 export interface ExportGroup {
   title: string
   sort: number
@@ -18,7 +20,7 @@ export interface ExportGroup {
 interface ExportItem {
   title: string
   sort: number
-  icon: Panel.ItemIcon | null
+  icon: ItemIcon | null
   url: string
   description: string
   openMethod: number

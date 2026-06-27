@@ -2,14 +2,15 @@ import { ref, watch, type Ref } from 'vue'
 import { toast } from '@/components/ui/sonner'
 import { usePanelState } from '@/store'
 import { setUserConfig } from '@/modules'
+import type { PanelConfig } from '@/modules/panel/types'
 
 interface UseConfigEditorOptions {
   /** 来源配置（通常是 props.panelConfig） */
-  config: Ref<Panel.panelConfig>
+  config: Ref<PanelConfig>
   /** 保存成功后触发（如 props.onSaved） */
   onSaved?: () => void
   /** 保存成功后触发，传入保存的配置（如 emit('save', config)） */
-  onSave?: (config: Panel.panelConfig) => void
+  onSave?: (config: PanelConfig) => void
 }
 
 /**
@@ -21,7 +22,7 @@ export function useConfigEditor(options: UseConfigEditorOptions) {
 
   const panelState = usePanelState()
 
-  const localConfig = ref<Panel.panelConfig>({})
+  const localConfig = ref<PanelConfig>({})
 
   watch(
     () => config.value,
@@ -36,7 +37,7 @@ export function useConfigEditor(options: UseConfigEditorOptions) {
     try {
       const res = await setUserConfig({ panel: configToSave })
       if (res.code === 0) {
-        panelState.updatePanelConfigFromCloud(configToSave)
+        panelState.setPanelConfig(configToSave)
         toast.success('配置已保存')
         onSave?.(configToSave)
         onSaved?.()

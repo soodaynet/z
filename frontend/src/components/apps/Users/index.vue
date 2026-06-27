@@ -42,15 +42,16 @@ import {
   deleteUsers,
   getUserList,
 } from '@/modules'
+import type { UserInfo } from '@/modules/auth/types'
 
 const authStore = useAuthStore()
 
 const tableIsLoading = ref(false)
 const editUserDialogShow = ref(false)
-const editUserUserInfo = ref<User.Info>()
+const editUserUserInfo = ref<UserInfo>()
 const publicVisitUserId = ref<number | null>(null)
 
-const userList = ref<User.Info[]>([])
+const userList = ref<UserInfo[]>([])
 
 // 分页状态
 const page = ref(1)
@@ -62,19 +63,19 @@ const totalPages = computed(() =>
 
 // 删除确认对话框
 const deleteDialogShow = ref(false)
-const deleteTarget = ref<User.Info | null>(null)
+const deleteTarget = ref<UserInfo | null>(null)
 
 function handleAdd() {
   editUserUserInfo.value = undefined
   editUserDialogShow.value = true
 }
 
-function handleEdit(row: User.Info) {
+function handleEdit(row: UserInfo) {
   editUserUserInfo.value = row
   editUserDialogShow.value = true
 }
 
-function confirmDelete(row: User.Info) {
+function confirmDelete(row: UserInfo) {
   deleteTarget.value = row
   deleteDialogShow.value = true
 }
@@ -90,7 +91,7 @@ async function handleDelete() {
   }
 }
 
-async function handleTogglePublic(row: User.Info) {
+async function handleTogglePublic(row: UserInfo) {
   if (publicVisitUserId.value && publicVisitUserId.value === row.id) {
     const { code } = await setPublicVisitUser(null)
     if (code === 0) {
@@ -140,7 +141,7 @@ async function loadList() {
 onMounted(async () => {
   // 获取当前公开访问用户
   try {
-    const { data } = await getPublicVisitUser<User.Info | null>()
+    const { data } = await getPublicVisitUser<UserInfo | null>()
     if (data?.id) publicVisitUserId.value = data.id
     else publicVisitUserId.value = null
   } catch {

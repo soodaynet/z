@@ -6,16 +6,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { saveSiteSettings } from '@/modules'
+import type { SiteConfig } from '@/modules/panel/types'
 
 const props = defineProps<{
-  siteConfig: Panel.SiteConfig
+  siteConfig: SiteConfig
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:siteConfig', config: Panel.SiteConfig): void
+  (e: 'update:siteConfig', config: SiteConfig): void
 }>()
 
-const localSiteConfig = ref<Panel.SiteConfig>({})
+const localSiteConfig = ref<SiteConfig>({})
 
 function syncSiteConfig() {
   localSiteConfig.value = { ...props.siteConfig }

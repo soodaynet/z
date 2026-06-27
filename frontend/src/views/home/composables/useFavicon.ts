@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { toast } from '@/components/ui/sonner'
 import { getSiteFavicon } from '@/modules'
+import type { SiteFaviconResponse } from '@/modules/panel/types'
 
 interface SiteMeta {
   title: string
@@ -23,7 +24,7 @@ export function useFavicon() {
     iconCandidates.value = []
     siteMeta.value = { title: '', description: '', siteName: '' }
     try {
-      const res = await getSiteFavicon<{ iconUrls: string[]; title?: string; description?: string; siteName?: string }>(url)
+      const res = await getSiteFavicon<SiteFaviconResponse>(url)
       if (res.code === 0 && res.data) {
         iconCandidates.value = res.data.iconUrls || []
         siteMeta.value = {

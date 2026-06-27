@@ -23,15 +23,24 @@ export class InitService {
 
   /**
    * 聚合返回面板数据、系统设置、认证信息、搜索引擎配置
+   *
+   * 优化：先取 userConfig（/init 中间件已校验用户存在，传 skipUserCheck=true 跳过 users 表冗余查询），
+   * 再将已查得的 panelJson 复用给 panel.getAllData，避免 user_configs 表被重复查询。
+   *
    * @param user 认证用户（未登录时为 null）
    */
   async aggregate(user: AuthUser | null): Promise<InitResponse> {
-    const [panelData, about, authInfo, userCfg] = await Promise.all([
-      this.panel.getAllData(user?.userId || 0),
+    const userId = user?.userId || 0
+
+    // 第一轮并行：用户配置（含 panelJson）+ 系统设置 + 认证信息
+    const [userCfg, about, authInfo] = await Promise.all([
+      this.userConfig.get(userId, true),
       this.settings.getAll(),
       InitService.buildAuthInfo(user),
-      this.userConfig.get(user?.userId || 0),
     ])
+
+    // 第二轮：复用 userCfg.panel 作为 panelJson，跳过 panel.getAllData 内部的 user_configs 查询
+    const panelData = await this.panel.getAllData(userId, JSON.stringify(userCfg.panel))
 
     return {
       ...panelData,

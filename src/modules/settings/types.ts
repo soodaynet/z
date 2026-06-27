@@ -1,4 +1,6 @@
+import type { z } from 'zod'
 import type { SystemSettingRow } from '../shared/types'
+import type { settingGetSchema, settingSetSchema, saveAllSchema } from './validator'
 
 // 重新导出数据库行类型，方便模块内统一引用
 export type { SystemSettingRow }
@@ -7,15 +9,10 @@ export type { SystemSettingRow }
 export type SettingResponse = Record<string, string>
 
 // POST /system/setting/get 请求体
-export interface SettingGetBody {
-  configName: string
-}
+export type SettingGetBody = z.infer<typeof settingGetSchema>
 
 // POST /system/setting/set 请求体
-export interface SettingSetBody {
-  configName: string
-  configValue?: string
-}
+export type SettingSetBody = z.infer<typeof settingSetSchema>
 
 // POST /system/settings/saveAll 请求体
-export type SettingSaveAllBody = Record<string, string>
+export type SettingSaveAllBody = z.infer<typeof saveAllSchema>

@@ -41,6 +41,7 @@ export default defineConfig({
           'vue-core': ['vue', 'vue-router', 'pinia'],
           'vue-i18n': ['vue-i18n'],
           'reka-ui': ['reka-ui'],
+          'icons': ['lucide-vue-next'],
           'utils': ['axios', 'clsx', 'tailwind-merge'],
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',

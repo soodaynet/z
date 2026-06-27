@@ -86,13 +86,24 @@ export interface AllDataResponse {
   panelConfig: PanelConfig
 }
 
-/** getSiteFavicon 返回结构 */
+/** getSiteFavicon 返回结构（与后端 FaviconResponse 对齐：所有字段必填，缺失时为空字符串） */
 export interface SiteFaviconResponse {
-  favicon: string
-  iconUrls?: string[]
-  title?: string
-  description?: string
-  siteName?: string
+  iconUrls: string[]
+  title: string
+  description: string
+  siteName: string
+}
+
+/** 站点级配置（来自 system_settings，键名以下划线分隔） */
+export interface SiteConfig {
+  site_title?: string
+  login_bg_image?: string
+  login_blur?: number
+  login_mask_opacity?: number
+  footer_html?: string
+  logo_text?: string
+  logo_image_src?: string
+  favicon_url?: string
 }
 
 /** 搜索引擎 */

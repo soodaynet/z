@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, onUnmounted, ref, computed, watch } from 'vue'
+import { defineAsyncComponent, onMounted, onUnmounted, ref, triggerRef, computed, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { ArrowUp } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
@@ -12,8 +12,7 @@ import { useItemEditor } from './composables/useItemEditor'
 import { useSiteConfig, SITE_CACHE_KEY } from './composables/useSiteConfig'
 import { useWallpaper } from './composables/useWallpaper'
 import { useDataLoader, type ItemGroup } from './composables/useDataLoader'
-import { getDefaultSearchEngineConfig } from './composables/useSearch'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig, SiteConfig, ItemInfo } from '@/modules/panel/types'
 // 首屏必须同步加载的
 import HomeSidebar from './components/HomeSidebar.vue'
 import HomeLogo from './components/HomeLogo.vue'
@@ -77,7 +76,7 @@ const { effectiveBackgroundImage, syncEffectiveWallpaper, preloadIconImages, mar
   () => authStore.isVisitMode,
 )
 
-function applySiteConfigToDom(config: Panel.SiteConfig) {
+function applySiteConfigToDom(config: SiteConfig) {
   localStorage.setItem(SITE_CACHE_KEY, JSON.stringify(config))
   siteConfigLoaded.value = true
   if (config.site_title) {
@@ -86,8 +85,9 @@ function applySiteConfigToDom(config: Panel.SiteConfig) {
   updateFavicon(config.favicon_url || '')
 }
 
-// 搜索引擎配置：初始用前端默认占位，/init 返回后由 useDataLoader 回调覆盖
-const searchEngineConfig = ref<SearchEngineConfig>(getDefaultSearchEngineConfig())
+// 搜索引擎配置：初始空值占位，由 useDataLoader 在 /init 返回后通过 onSearchEngineUpdated 覆盖。
+// 搜索框 v-if="initialLoaded" 已门控：未就绪前不渲染，避免暴露此空占位。
+const searchEngineConfig = ref<SearchEngineConfig>({ engines: [], currentIndex: 0 })
 function handleEngineChanged(cfg: SearchEngineConfig) {
   searchEngineConfig.value = cfg
 }
@@ -166,7 +166,7 @@ watch(
   () => syncGlassVars(),
 )
 
-function openUrl(item: Panel.ItemInfo) {
+function openUrl(item: ItemInfo) {
   let url = item.url
   switch (item.openMethod) {
     case 1:
@@ -204,7 +204,7 @@ async function handleGetSiteInfo() {
   }
 }
 
-async function handleDeleteItem(item: Panel.ItemInfo) {
+async function handleDeleteItem(item: ItemInfo) {
   if (!item.id) return
   try {
     const res = await deleteItems([item.id])
@@ -213,9 +213,11 @@ async function handleDeleteItem(item: Panel.ItemInfo) {
       // 直接从本地 groups 中移除该 item，不发起额外请求
       for (const group of groups.value) {
         if (group.items) {
-          const idx = group.items.findIndex((i: Panel.ItemInfo) => i.id === item.id)
+          const idx = group.items.findIndex((i: ItemInfo) => i.id === item.id)
           if (idx !== -1) {
             group.items.splice(idx, 1)
+            // shallowRef 深层变更后手动触发，让视图移除被删除的卡片
+            triggerRef(groups)
             break
           }
         }
@@ -228,6 +230,8 @@ async function handleDeleteItem(item: Panel.ItemInfo) {
 
 // ====== 排序 ======
 async function saveItemSortOrder(group: ItemGroup) {
+  // VueDraggable v-model 已在拖拽时改写 group.items，shallowRef 需手动触发同步依赖
+  triggerRef(groups)
   const sortItems = (group.items || []).filter((g) => g.id).map((item, i) => ({ id: item.id!, sort: i }))
   try {
     const res = await saveItemSort({ sortItems, itemIconGroupId: group.id! })
@@ -388,8 +392,11 @@ watch(() => authStore.isLoggedIn, (val) => {
               />
             </VueDraggable>
             <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+              <!-- v-memo 与 v-for 同元素是 Vue 3 官方推荐用法（见 Vue 3 文档 v-memo 章节），vue/valid-v-memo 规则在此场景为误报 -->
+              <!-- eslint-disable vue/valid-v-memo -->
               <div
                 v-for="(item, ii) in group.items"
+                v-memo="[item.id, item.icon?.src, item.icon?.backgroundColor, item.icon?.text, item.title, item.description, eagerKeySet.has(`${gi}-${ii}`)]"
                 :key="item.id || ii"
                 :title="item.description || undefined"
               >
@@ -401,6 +408,7 @@ watch(() => authStore.isLoggedIn, (val) => {
                   @click="openUrl"
                 />
               </div>
+              <!-- eslint-enable vue/valid-v-memo -->
             </div>
             <div
               v-if="!group.items || group.items.length === 0"

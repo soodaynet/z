@@ -4,9 +4,7 @@ import { verifyPassword } from '../shared/password'
 import { signToken } from '../shared/jwt'
 import { queryFirst } from '../shared/db'
 import { AppError } from '../shared/errors'
-
-/** 用户查询字段（含 password 用于校验） */
-const USER_SELECT = 'SELECT id, username, password, name, head_image, status, role, mail, created_at, updated_at FROM users'
+import { USER_SELECT, formatUserInfo } from '../shared/userFormatter'
 
 export class AuthService {
   constructor(private db: D1Database) {}
@@ -17,20 +15,6 @@ export class AuthService {
    */
   async findByUsername(username: string): Promise<UserRow | null> {
     return queryFirst<UserRow>(this.db, `${USER_SELECT} WHERE username = ?`, username)
-  }
-
-  /** 将数据库行格式化为前端需要的用户信息对象 */
-  private formatUserInfo(row: UserRow) {
-    return {
-      id: row.id,
-      username: row.username,
-      name: row.name || '',
-      headImage: row.head_image || '',
-      status: row.status,
-      role: row.role,
-      mail: row.mail || '',
-      created_at: row.created_at,
-    }
   }
 
   /**
@@ -55,6 +39,6 @@ export class AuthService {
       { secret: jwtSecret },
     )
 
-    return { token, userInfo: this.formatUserInfo(user) }
+    return { token, userInfo: formatUserInfo(user) }
   }
 }

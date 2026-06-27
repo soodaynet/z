@@ -1,22 +1,23 @@
-import { ref, computed, type Ref } from 'vue'
+import { ref, shallowRef, computed, type Ref } from 'vue'
 import type { useAuthStore, usePanelState } from '@/store'
 import { getAllData, getInit } from '@/modules'
 import { cachedRequest, invalidateCacheByPrefix, invalidateCache } from '@/utils/requestCache'
 import { PUBLIC_MODE_KEY } from '@/utils/storageKeys'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig, SiteConfig, PanelConfig, ItemInfo, ItemIconGroup } from '@/modules/panel/types'
+import type { UserInfo } from '@/modules/auth/types'
 
-export interface ItemGroup extends Panel.ItemIconGroup {
+export interface ItemGroup extends ItemIconGroup {
   hoverStatus?: boolean
-  items: Panel.ItemInfo[]
+  items: ItemInfo[]
   sortStatus?: boolean
 }
 
 interface InitData {
-  groups: Panel.ItemIconGroup[]
-  itemsMap: Record<number, Panel.ItemInfo[]>
-  panelConfig: Panel.panelConfig
+  groups: ItemIconGroup[]
+  itemsMap: Record<number, ItemInfo[]>
+  panelConfig: PanelConfig
   about: Record<string, string>
-  authInfo: { user: User.Info | null; visitMode: number }
+  authInfo: { user: UserInfo | null; visitMode: number }
   searchEngine?: SearchEngineConfig
 }
 
@@ -27,16 +28,18 @@ interface PreloadGroup {
 export function useDataLoader(options: {
   authStore: ReturnType<typeof useAuthStore>
   panelState: ReturnType<typeof usePanelState>
-  siteConfig: Ref<Panel.SiteConfig>
+  siteConfig: Ref<SiteConfig>
   syncWallpaper: () => void
   preloadIcons: (groups: PreloadGroup[], count?: number) => void
-  onSiteConfigUpdated: (config: Panel.SiteConfig) => void
+  onSiteConfigUpdated: (config: SiteConfig) => void
   markDataReady: () => void
   onSearchEngineUpdated?: (config: SearchEngineConfig) => void
 }) {
   const { authStore, panelState, siteConfig, syncWallpaper, preloadIcons, onSiteConfigUpdated, markDataReady, onSearchEngineUpdated } = options
 
-  const groups = ref<ItemGroup[]>([])
+  // shallowRef：避免 Vue 对每个 item 的 30+ 字段建立深度响应式代理；
+  // 深层变更（splice / items 重排）后需手动 triggerRef(groups)，整体赋值无需触发
+  const groups = shallowRef<ItemGroup[]>([])
   const loading = ref(true)
   // 首次数据就绪标志：初始 false，首次 loadInitData 成功后置 true 且不再重置。
   // 用于门控搜索框/Logo 渲染，避免加载期间显示默认值后被真实配置替换的闪烁。
@@ -48,7 +51,7 @@ export function useDataLoader(options: {
     return groups.value.filter((g) => g.publicVisible !== 0)
   })
 
-  function mapGroups(rawGroups: Panel.ItemIconGroup[], itemsMap: Record<number, Panel.ItemInfo[]>) {
+  function mapGroups(rawGroups: ItemIconGroup[], itemsMap: Record<number, ItemInfo[]>) {
     return (rawGroups || []).map((g) => ({
       ...g,
       hoverStatus: false,
@@ -63,9 +66,9 @@ export function useDataLoader(options: {
     try {
       const res = await cachedRequest('panel:allData', () =>
         getAllData<{
-          groups: Panel.ItemIconGroup[]
-          itemsMap: Record<number, Panel.ItemInfo[]>
-          panelConfig: Panel.panelConfig
+          groups: ItemIconGroup[]
+          itemsMap: Record<number, ItemInfo[]>
+          panelConfig: PanelConfig
         }>(),
         600,
       )
@@ -76,7 +79,7 @@ export function useDataLoader(options: {
         groups.value = mapGroups(rawGroups, itemsMap)
 
         if (panelConfig && Object.keys(panelConfig).length > 0) {
-          panelState.updatePanelConfigFromCloud(panelConfig)
+          panelState.setPanelConfig(panelConfig)
         }
         syncWallpaper()
         markDataReady()
@@ -93,7 +96,8 @@ export function useDataLoader(options: {
   async function loadInitData() {
     loading.value = true
     try {
-      const res = await getInit<InitData>()
+      // /init 走 cachedRequest（30s），防止短时间多次 refreshAll 重复请求
+      const res = await cachedRequest('init', () => getInit<InitData>(), 30)
       if (res.code === 0 && res.data) {
         const { groups: rawGroups, itemsMap, panelConfig, about, authInfo, searchEngine } = res.data
 
@@ -112,12 +116,12 @@ export function useDataLoader(options: {
         groups.value = mapGroups(rawGroups, itemsMap)
 
         if (panelConfig && Object.keys(panelConfig).length > 0) {
-          panelState.updatePanelConfigFromCloud(panelConfig)
+          panelState.setPanelConfig(panelConfig)
         }
 
         // 3. 站点配置（在面板数据之后应用，这样 watchEffect 中 backgroundImageSrc 已就绪，login_bg_image 作为兜底不会覆盖）
         if (about && Object.keys(about).length > 0) {
-          const config: Panel.SiteConfig = {
+          const config: SiteConfig = {
             site_title: about.site_title || '',
             login_bg_image: about.login_bg_image || '',
             login_blur: about.login_blur !== undefined ? Number(about.login_blur) : 12,
@@ -154,6 +158,8 @@ export function useDataLoader(options: {
   function refreshAll() {
     invalidateCacheByPrefix('panel:')
     invalidateCache('site:about')
+    // 同步失效 /init 缓存，确保 refreshAll 拉取最新数据
+    invalidateCache('init')
     loadInitData()
   }
 

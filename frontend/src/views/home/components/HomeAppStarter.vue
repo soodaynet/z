@@ -9,7 +9,7 @@ import { toast } from '@/components/ui/sonner'
 import { useAuthStore, usePanelState } from '@/store'
 import { saveGroup, deleteGroups } from '@/modules'
 import AppStarterSidebar from './AppStarterSidebar.vue'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig, SiteConfig, ItemInfo, ItemIconGroup } from '@/modules/panel/types'
 
 // 8 个 Panel 改为按需加载：首屏只下载当前激活 Tab 的 chunk，其余在切换时再拉取
 const UsersManage = defineAsyncComponent(() => import('@/components/apps/Users/index.vue'))
@@ -32,7 +32,7 @@ interface ItemGroup {
   id?: number
   title: string
   sort?: number
-  items?: Panel.ItemInfo[]
+  items?: ItemInfo[]
   publicVisible?: number
   hoverStatus?: boolean
   sortStatus?: boolean
@@ -40,7 +40,7 @@ interface ItemGroup {
 
 const props = defineProps<{
   visible: boolean
-  siteConfig: Panel.SiteConfig
+  siteConfig: SiteConfig
   groups: ItemGroup[]
   searchEngineConfig: SearchEngineConfig
   onSaved: () => void
@@ -48,7 +48,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', visible: boolean): void
-  (e: 'update:siteConfig', config: Panel.SiteConfig): void
+  (e: 'update:siteConfig', config: SiteConfig): void
   (e: 'update:searchEngineConfig', config: SearchEngineConfig): void
   (e: 'groupSaved'): void
 }>()
@@ -67,7 +67,7 @@ const collapsed = ref(false)
 const screenWidth = ref(window.innerWidth)
 const isSmallScreen = ref(false)
 const editGroupModalVisible = ref(false)
-const editingGroup = ref<Panel.ItemIconGroup>({ title: '' })
+const editingGroup = ref<ItemIconGroup>({ title: '' })
 
 const apps = computed<App[]>(() => {
   const list: App[] = [
@@ -110,7 +110,7 @@ onUnmounted(() => {
 })
 
 // ====== 站点设置 ======
-const localSiteConfig = ref<Panel.SiteConfig>({})
+const localSiteConfig = ref<SiteConfig>({})
 
 function syncSiteConfig() {
   localSiteConfig.value = { ...props.siteConfig }
@@ -118,7 +118,7 @@ function syncSiteConfig() {
 
 watch(() => props.siteConfig, () => syncSiteConfig(), { deep: true })
 
-function handleSiteConfigUpdate(config: Panel.SiteConfig) {
+function handleSiteConfigUpdate(config: SiteConfig) {
   emit('update:siteConfig', config)
 }
 
@@ -176,7 +176,7 @@ function handleGroupSaved() {
             <!-- Tab 切换淡入过渡 + KeepAlive 缓存：避免重复 onMounted 请求 -->
             <Transition name="tab-fade" mode="out-in">
               <KeepAlive>
-                <div :key="activeApp">
+                <!-- KeepAlive 直接包裹 v-if 组件链（中间无 :key div），确保切回 Tab 复用 Panel 实例 -->
                 <!-- ====== 我的信息 ====== -->
                 <PanelUserInfo v-if="activeApp === 'UserInfo'" />
 
@@ -227,7 +227,6 @@ function handleGroupSaved() {
                   :site-config="localSiteConfig"
                   @update:site-config="handleSiteConfigUpdate"
                 />
-                </div>
               </KeepAlive>
             </Transition>
           </div>

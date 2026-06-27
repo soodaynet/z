@@ -3,9 +3,8 @@ import type { UserRow } from '../shared/types'
 import { hashPassword, verifyPassword } from '../shared/password'
 import { queryAll, queryFirst } from '../shared/db'
 import { AppError } from '../shared/errors'
-
-/** 用户查询字段（含 password） */
-const USER_SELECT = 'SELECT id, username, password, name, head_image, status, role, mail, created_at, updated_at FROM users'
+import * as cache from '../shared/cache'
+import { USER_SELECT, formatUserInfo } from '../shared/userFormatter'
 
 /** 用户公开信息字段（不含 password） */
 const USER_PUBLIC_SELECT = 'SELECT id, username, name, head_image, status, role, mail, created_at FROM users'
@@ -23,20 +22,6 @@ export class UserService {
     return queryFirst<UserRow>(this.db, `${USER_SELECT} WHERE id = ?`, id)
   }
 
-  /** 将数据库行格式化为前端需要的用户信息对象 */
-  private formatUserInfo(row: UserRow) {
-    return {
-      id: row.id,
-      username: row.username,
-      name: row.name || '',
-      headImage: row.head_image || '',
-      status: row.status,
-      role: row.role,
-      mail: row.mail || '',
-      created_at: row.created_at,
-    }
-  }
-
   /**
    * 获取用户公开信息
    * @param id 用户 ID
@@ -44,7 +29,7 @@ export class UserService {
   async getUserInfo(id: number) {
     const row = await this.findById(id)
     if (!row) return null
-    return this.formatUserInfo(row)
+    return formatUserInfo(row)
   }
 
   // ========== 个人信息 ==========
@@ -199,6 +184,8 @@ export class UserService {
   /**
    * 管理员批量删除用户
    * 同时删除用户关联的图标、分组和配置，防止自己删除自己
+   *
+   * 使用 db.batch 一次往返完成 4 条 DELETE（保持外键依赖顺序：图标 → 分组 → 配置 → 用户）。
    * @param userIds 要删除的用户 ID 列表
    * @param selfUserId 当前操作者 ID
    * @throws AppError 尝试删除自己
@@ -208,18 +195,59 @@ export class UserService {
     if (filteredIds.length === 0) throw AppError.badRequest('不能删除自己')
 
     const placeholders = filteredIds.map(() => '?').join(',')
-    // 顺序执行：先删图标 → 分组 → 配置 → 用户，保证外键依赖
-    const deleteQueries = [
-      `DELETE FROM item_icons WHERE user_id IN (${placeholders})`,
-      `DELETE FROM item_icon_groups WHERE user_id IN (${placeholders})`,
-      `DELETE FROM user_configs WHERE user_id IN (${placeholders})`,
-      `DELETE FROM users WHERE id IN (${placeholders})`,
-    ]
-
-    for (const sql of deleteQueries) {
-      await this.db.prepare(sql).bind(...filteredIds).run()
-    }
+    await this.db.batch([
+      this.db.prepare(`DELETE FROM item_icons WHERE user_id IN (${placeholders})`).bind(...filteredIds),
+      this.db.prepare(`DELETE FROM item_icon_groups WHERE user_id IN (${placeholders})`).bind(...filteredIds),
+      this.db.prepare(`DELETE FROM user_configs WHERE user_id IN (${placeholders})`).bind(...filteredIds),
+      this.db.prepare(`DELETE FROM users WHERE id IN (${placeholders})`).bind(...filteredIds),
+    ])
 
     return { success: true }
+  }
+
+  // ========== 公开访问用户（直接读写 system_settings.panel_public_user_id） ==========
+
+  /**
+   * 获取公开访问用户 ID
+   *
+   * 直接查询 `system_settings` 表的 `panel_public_user_id` 配置，避免跨模块依赖 SettingsService。
+   * 用户行查询走 `getUserInfo`（与本模块职责一致）。
+   * @returns 用户 ID，未配置时返回 null
+   */
+  async getPublicVisitUserId(): Promise<number | null> {
+    const setting = (await this.db
+      .prepare("SELECT config_value FROM system_settings WHERE config_name = 'panel_public_user_id'")
+      .first()) as { config_value: string } | null
+    if (!setting?.config_value) return null
+    const userId = parseInt(setting.config_value, 10)
+    return Number.isFinite(userId) ? userId : null
+  }
+
+  /**
+   * 设置公开访问用户 ID
+   *
+   * 直接写 `system_settings` 表的 `panel_public_user_id` 配置，避免跨模块依赖 SettingsService。
+   * 写完后主动失效 `public-visit-config` / `public-visit-user` 缓存（与原 SettingsService.setPublicVisitUser 行为一致）。
+   * @param userId 用户 ID，null 表示取消设置
+   * @throws AppError 用户不存在
+   */
+  async setPublicVisitUserId(userId: number | null) {
+    if (userId === null || userId === undefined) {
+      await this.db.prepare("DELETE FROM system_settings WHERE config_name = 'panel_public_user_id'").run()
+    } else {
+      const user = await this.db.prepare('SELECT id FROM users WHERE id = ?').bind(userId).first()
+      if (!user) throw AppError.notFound('用户不存在')
+
+      await this.db
+        .prepare(
+          `INSERT INTO system_settings (config_name, config_value) VALUES (?, ?)
+           ON CONFLICT(config_name) DO UPDATE SET config_value = excluded.config_value, updated_at = datetime('now')`,
+        )
+        .bind('panel_public_user_id', String(userId))
+        .run()
+    }
+    // 主动失效公开访问相关缓存（覆盖 DELETE 与 upsert 两条路径）
+    cache.invalidate('public-visit-config')
+    cache.invalidate('public-visit-user')
   }
 }

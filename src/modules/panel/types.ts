@@ -1,4 +1,6 @@
+import type { z } from 'zod'
 import type { ItemIconRow, ItemIconGroupRow } from '../shared/types'
+import type { iconEditSchema, iconAddMultipleSchema, iconGroupSchema } from './validator'
 
 // 重新导出数据库行类型，方便模块内统一引用
 export type { ItemIconRow, ItemIconGroupRow }
@@ -44,29 +46,13 @@ export interface IconObject {
 // ========== 请求体类型 ==========
 
 /** 图标编辑/创建请求体 */
-export interface IconEditBody {
-  id?: number
-  icon?: IconObject
-  title: string
-  url: string
-  description?: string
-  openMethod?: number
-  sort?: number
-  itemIconGroupId: number
-}
+export type IconEditBody = z.infer<typeof iconEditSchema>
 
 /** 批量添加图标请求体 */
-export type IconAddMultipleBody = IconEditBody[]
+export type IconAddMultipleBody = z.infer<typeof iconAddMultipleSchema>
 
 /** 分组编辑/创建请求体 */
-export interface GroupEditBody {
-  id?: number
-  icon?: string
-  title: string
-  description?: string
-  sort?: number
-  publicVisible?: number
-}
+export type GroupEditBody = z.infer<typeof iconGroupSchema>
 
 /** 排序项 */
 export interface SortItem {

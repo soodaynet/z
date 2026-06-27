@@ -76,15 +76,22 @@ export class PanelService {
    * 获取用户全部面板数据（分组、图标、面板配置）
    * 一次查询替代多次 API 调用，减少网络往返
    * @param userId 用户 ID
+   * @param panelJson 已查得的 panel_json 字符串，传入时跳过 user_configs 查询（/init 复用）
    */
-  async getAllData(userId: number): Promise<AllDataResponse> {
-    const [groups, iconRows, configRow] = await Promise.all([
+  async getAllData(userId: number, panelJson?: string): Promise<AllDataResponse> {
+    // panelJson 由调用方（/init）已查得时直接复用，避免重复查询 user_configs
+    const configPromise = panelJson !== undefined
+      ? Promise.resolve(panelJson)
+      : queryFirst<{ panel_json: string }>(this.db,
+        'SELECT panel_json FROM user_configs WHERE user_id = ?', userId)
+          .then(row => row?.panel_json ?? '')
+
+    const [groups, iconRows, panelJsonStr] = await Promise.all([
       queryAll<ItemIconGroupRow>(this.db,
         `${GROUP_SELECT} WHERE user_id = ? ORDER BY sort ASC, id ASC`, userId),
       queryAll<ItemIconRow>(this.db,
         `${ICON_SELECT} WHERE user_id = ? ORDER BY sort ASC, id ASC`, userId),
-      queryFirst<{ panel_json: string }>(this.db,
-        'SELECT panel_json FROM user_configs WHERE user_id = ?', userId),
+      configPromise,
     ])
 
     const itemsMap: Record<number, IconItem[]> = {}
@@ -97,7 +104,7 @@ export class PanelService {
     return {
       groups: groups.map(g => this.formatGroup(g)),
       itemsMap,
-      panelConfig: configRow?.panel_json ? JSON.parse(configRow.panel_json) : {},
+      panelConfig: panelJsonStr ? JSON.parse(panelJsonStr) : {},
     }
   }
 
@@ -275,16 +282,21 @@ export class PanelService {
 
   /**
    * 批量删除分组（同时删除分组下的图标）
+   *
+   * 使用 db.batch 一次往返完成 2 条 DELETE（保持外键依赖顺序：图标 → 分组）。
    * @param ids 分组 ID 列表
    * @param userId 用户 ID
    */
   async deleteGroups(ids: number[], userId: number): Promise<void> {
     const placeholders = ids.map(() => '?').join(',')
-    // D1 不支持同一连接并行执行 prepared statement，必须顺序执行
-    await this.db.prepare(`DELETE FROM item_icons WHERE item_icon_group_id IN (${placeholders}) AND user_id = ?`)
-      .bind(...ids, userId).run()
-    await this.db.prepare(`DELETE FROM item_icon_groups WHERE id IN (${placeholders}) AND user_id = ?`)
-      .bind(...ids, userId).run()
+    await this.db.batch([
+      this.db
+        .prepare(`DELETE FROM item_icons WHERE item_icon_group_id IN (${placeholders}) AND user_id = ?`)
+        .bind(...ids, userId),
+      this.db
+        .prepare(`DELETE FROM item_icon_groups WHERE id IN (${placeholders}) AND user_id = ?`)
+        .bind(...ids, userId),
+    ])
   }
 
   /**

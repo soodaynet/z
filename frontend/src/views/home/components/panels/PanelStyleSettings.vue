@@ -8,14 +8,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useConfigEditor } from '../../composables/useConfigEditor'
+import type { PanelConfig } from '@/modules/panel/types'
 
 const props = defineProps<{
-  panelConfig: Panel.panelConfig
+  panelConfig: PanelConfig
   onSaved: () => void
 }>()
 
 const emit = defineEmits<{
-  (e: 'save', config: Panel.panelConfig): void
+  (e: 'save', config: PanelConfig): void
   (e: 'reset'): void
 }>()
 

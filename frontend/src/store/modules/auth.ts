@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { TOKEN_KEY, USER_KEY, VISIT_MODE_KEY, PUBLIC_MODE_KEY, PANEL_STATE_KEY, SKIP_REDIRECT_KEY } from '@/utils/storageKeys'
+import type { UserInfo } from '@/modules/auth/types'
 
 export enum VisitMode {
   VISIT_MODE_LOGIN = 0,
@@ -8,7 +9,7 @@ export enum VisitMode {
 
 export interface AuthState {
   token: string | null
-  userInfo: User.Info | null
+  userInfo: UserInfo | null
   visitMode: VisitMode
 }
 
@@ -45,7 +46,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem(TOKEN_KEY, token)
     },
 
-    setUserInfo(info: User.Info) {
+    setUserInfo(info: UserInfo) {
       this.userInfo = info
       localStorage.setItem(USER_KEY, JSON.stringify(info))
     },
@@ -55,13 +56,13 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem(VISIT_MODE_KEY, String(mode))
     },
 
-    loginSuccess(token: string, userInfo: User.Info) {
+    loginSuccess(token: string, userInfo: UserInfo) {
       this.setToken(token)
       this.setUserInfo(userInfo)
       this.setVisitMode(VisitMode.VISIT_MODE_LOGIN)
     },
 
-    setGuestMode(userInfo: User.Info | null) {
+    setGuestMode(userInfo: UserInfo | null) {
       this.token = null
       localStorage.removeItem(TOKEN_KEY)
       this.setVisitMode(VisitMode.VISIT_MODE_PUBLIC)

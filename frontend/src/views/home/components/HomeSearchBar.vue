@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { Search, ChevronDown, Check } from 'lucide-vue-next'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig, ItemInfo } from '@/modules/panel/types'
 import type { ItemGroup } from '../composables/useDataLoader'
 import { useSearch } from '../composables/useSearch'
 
@@ -19,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'openUrl', item: Panel.ItemInfo): void
+  (e: 'openUrl', item: ItemInfo): void
   (e: 'engineChanged', config: SearchEngineConfig): void
 }>()
 

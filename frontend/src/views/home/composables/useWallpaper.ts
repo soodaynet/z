@@ -1,6 +1,7 @@
 import { ref, watchEffect, type Ref } from 'vue'
 import { usePanelState } from '@/store'
 import { WALLPAPER_CACHE_KEY } from '@/utils/storageKeys'
+import type { SiteConfig } from '@/modules/panel/types'
 
 /** 检测 URL 是否为动态图片 API（含 random/php/api. 等关键词） */
 export function isDynamicApiUrl(url: string): boolean {
@@ -12,7 +13,7 @@ interface PreloadGroup {
 }
 
 export function useWallpaper(
-  siteConfig: Ref<Panel.SiteConfig>,
+  siteConfig: Ref<SiteConfig>,
   panelState?: ReturnType<typeof usePanelState>,
   isVisitMode: () => boolean = () => false,
 ) {
@@ -43,6 +44,7 @@ export function useWallpaper(
    * - 访客模式：站点公开壁纸 login_bg_image > 风格设置 backgroundImageSrc > 空
    * - 用户模式：风格设置 backgroundImageSrc > 站点设置 login_bg_image > 空
    * dataReady 为 false 时仅使用缓存值，不触发回退逻辑
+   * 壁纸同步与预加载合并为单个 watchEffect，减少重复订阅
    */
   watchEffect(() => {
     // 未就绪时：仅使用缓存值，不主动回退到站点壁纸（避免闪烁）
@@ -55,6 +57,8 @@ export function useWallpaper(
     }
     if (url) {
       localStorage.setItem(WALLPAPER_CACHE_KEY, url)
+      // 壁纸变化时预加载新壁纸（合并自原独立 watchEffect，preloadBackgroundImage 内部按 href 去重）
+      preloadBackgroundImage(url)
     }
   })
 
@@ -109,41 +113,38 @@ export function useWallpaper(
     }
   }
 
-  /** 预加载首屏图标（前 N 个），加速图标渲染 */
-  function preloadIconImages(groups: PreloadGroup[], count: number = 36) {
-    let loaded = 0
-    const seen = new Set<string>()
-    for (const group of groups) {
-      for (const item of group.items || []) {
-        if (loaded >= count) return
-        if (!item.icon?.src) continue
+  /** 预加载首屏图标（前 N 个），加速图标渲染；延迟到空闲时段执行避免阻塞主线程 */
+  function preloadIconImages(groups: PreloadGroup[], count: number = 12) {
+    // requestIdleCallback 不可用时回退到 setTimeout，把 DOM 操作推迟到空闲时段
+    const schedule: (cb: () => void) => void =
+      typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 0)
+    schedule(() => {
+      let loaded = 0
+      const seen = new Set<string>()
+      for (const group of groups) {
+        for (const item of group.items || []) {
+          if (loaded >= count) return
+          if (!item.icon?.src) continue
 
-        const src = item.icon.src
-        if (seen.has(src)) continue
-        seen.add(src)
+          const src = item.icon.src
+          if (seen.has(src)) continue
+          seen.add(src)
 
-        const link = document.createElement('link')
-        link.rel = 'preload'
-        link.as = 'image'
-        link.href = src
-        link.setAttribute('data-icon-preload', 'true')
-        document.head.appendChild(link)
+          const link = document.createElement('link')
+          link.rel = 'preload'
+          link.as = 'image'
+          link.href = src
+          link.setAttribute('data-icon-preload', 'true')
+          document.head.appendChild(link)
 
-        const img = new Image()
-        img.src = src
-        img.decode().catch(() => {})
-        loaded++
+          const img = new Image()
+          img.src = src
+          img.decode().catch(() => {})
+          loaded++
+        }
       }
-    }
+    })
   }
-
-  // 壁纸变化时预加载新壁纸
-  watchEffect(() => {
-    const url = effectiveBackgroundImage.value
-    if (url) {
-      preloadBackgroundImage(url)
-    }
-  })
 
   return {
     effectiveBackgroundImage,

@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import type { ItemInfo } from '@/modules/panel/types'
 
 
 const props = defineProps<{
   visible: boolean
-  editingItem: Panel.ItemInfo | null
+  editingItem: ItemInfo | null
   getIconLoading: boolean
   iconCandidates: string[]
 }>()

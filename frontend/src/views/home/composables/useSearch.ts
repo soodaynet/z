@@ -1,7 +1,7 @@
 import { ref, computed, watch, type Ref } from 'vue'
 import { setUserConfig } from '@/modules'
 import { useAuthStore } from '@/store'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig, ItemInfo } from '@/modules/panel/types'
 import type { ItemGroup } from './useDataLoader'
 
 /** 本地匹配结果最大数量 */
@@ -10,27 +10,12 @@ const MAX_LOCAL_MATCHES = 8
 const DEBOUNCE_MS = 200
 
 /**
- * 前端内置默认搜索引擎配置（与后端默认一致）。
- * 仅作初始占位，/init 返回后会被真实配置覆盖。
- */
-export function getDefaultSearchEngineConfig(): SearchEngineConfig {
-  return {
-    engines: [
-      { name: 'Google', url: 'https://www.google.com/search?q=' },
-      { name: 'Bing', url: 'https://www.bing.com/search?q=' },
-      { name: 'Yandex', url: 'https://www.yandex.com/search/?text=' },
-    ],
-    currentIndex: 0,
-  }
-}
-
-/**
  * 首页搜索逻辑：本地图标匹配（防抖）+ 外部搜索引擎跳转。
  */
 export function useSearch(options: {
   visibleGroups: Ref<ItemGroup[]>
   searchEngineConfig: Ref<SearchEngineConfig>
-  openUrl: (item: Panel.ItemInfo) => void
+  openUrl: (item: ItemInfo) => void
 }) {
   const { visibleGroups, searchEngineConfig, openUrl } = options
   const authStore = useAuthStore()
@@ -53,10 +38,10 @@ export function useSearch(options: {
   })
 
   // 本地图标匹配：基于防抖后的关键词过滤，最多取 8 项
-  const localMatches = computed<Panel.ItemInfo[]>(() => {
+  const localMatches = computed<ItemInfo[]>(() => {
     const q = debouncedQuery.value.trim().toLowerCase()
     if (!q) return []
-    const result: Panel.ItemInfo[] = []
+    const result: ItemInfo[] = []
     for (const group of visibleGroups.value) {
       for (const item of group.items || []) {
         const title = (item.title || '').toLowerCase()

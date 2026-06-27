@@ -50,7 +50,6 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 | vue-i18n | ^11.0.0 |
 | typescript | ^5.8.0 |
 | vue-tsc | ^2.2.0 |
-| tw-animate-css | ^1.0.0 |
 | axios | ^1.7.9 |
 | vue-draggable-plus | ^0.6.0 |
 
@@ -72,7 +71,7 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 │   ├── index.ts                        # Hono App 入口：全局中间件 + 模块注册表 + SPA 回退
 │   ├── modules/                        # 插件式模块化架构
 │   │   ├── types.ts                    # AppContext、AppBindings、ModuleDefinition 接口
-│   │   ├── registry.ts                 # ModuleRegistry 类（register/install/get/list）
+│   │   ├── registry.ts                 # ModuleRegistry 类（register/install）
 │   │   ├── shared/                     # 共享工具与中间件（模块间唯一通信通道）
 │   │   │   ├── jwt.ts                  # JWT 签名/验证（Web Crypto API）
 │   │   │   ├── env.ts                  # 环境变量校验（JWT_SECRET 必填）
@@ -87,7 +86,6 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 │   │   ├── users/                      # 用户管理（usersAdminModule + userSelfModule）
 │   │   └── settings/                   # 系统设置
 │   │   （每个模块自包含：index.ts/routes.ts/service.ts/validator.ts/types.ts）
-│   └── （旧 routes/、services/、utils/、middleware/、validators/、models/ 历史目录，保留以备参考）
 ├── frontend/                           # Vue 3 前端（pnpm 包名：sun-panel-frontend）
 │   ├── package.json、vite.config.ts、tsconfig.json、components.json
 │   ├── src/
@@ -101,7 +99,6 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 │   │   ├── router/、lib/utils.ts（cn helper）
 │   │   ├── styles/main.css（Tailwind 4 @theme 指令）、global.css
 │   │   ├── utils/                      # 工具函数（faviconUtils、importExport、requestCache、storageKeys 等）
-│   │   └── （旧 api/ 目录，历史保留以备参考）
 ├── .github/workflows/
 │   ├── pr-check.yml                    # PR 检查（typecheck + build + lint，pnpm 10.15.1 + Node 24）
 │   └── deploy-worker.yml               # 推送 main 自动部署
@@ -375,12 +372,42 @@ feat(panel): 新增图标批量排序接口
 - ❌ 不得在 `wrangler.toml` 写真实 `database_id`——保持 `__D1_DATABASE_ID__` 占位符
 - ❌ **不得引入 KV / R2 / 其他数据库**——D1 是唯一持久化存储（session/缓存等临时数据可用内存或 `c.var` 上下文，但不得持久化到非 D1 存储）
 - ❌ 不得绕过全局 `csrfMiddleware` / `authMiddleware` / `adminMiddleware`
-- ❌ 不得主动删除已废弃的旧目录（`src/routes/`、`src/services/`、`src/validators/`、`src/utils/`、`src/middleware/`、`src/models/`、`frontend/src/api/`）——仅为向后兼容保留
 - ❌ 不得给 `JWT_SECRET` 添加默认回退值——未配置时 Worker 必须启动失败
 
 ---
 
-## 11. 测试与验证流程
+## 11. 性能优化基线
+
+> 以下为 spec `comprehensive-perf-optimization` 已落地的性能优化点，新代码应避免回退这些基线。
+
+### 后端响应速度
+- **/init 去重**：`init/service.ts` 的 `aggregate` 让 `panel.getAllData` 复用 `userConfig.get` 已查得的 `panelJson`，单次 `/init` 不再重复查 `user_configs` 与 `users` 表（`skipUserCheck: true`）。
+- **内存缓存**：`src/modules/shared/cache.ts` 提供模块级 TTL 缓存，用于 `publicModeMiddleware`（public-visit-config / public-visit-user，60s）、`settings.getAll`（settings:all，30s）。所有写操作（saveAll / upsertSetting / setPublicVisitUser / user-config.set / updatePanel / updateSearchEngine）末尾调用 `cache.invalidate*` 失效。
+- **ON CONFLICT upsert**：`settings.upsertSetting` / `user-config.set` / `updatePanel` / `updateSearchEngine` 改为 `INSERT ... ON CONFLICT(...) DO UPDATE SET ...` 单语句，省一次 SELECT。
+- **db.batch()**：`settings.saveAll` / `users.adminDelete`（4 条 DELETE）/ `panel.deleteGroups`（2 条 DELETE）改批量往返。
+- **JWT CryptoKey 复用**：`src/modules/shared/jwt.ts` 模块级缓存 `CryptoKey`，secret 不变时复用（ponytail: 单实例单 secret 假设，secret 轮换需重启 Worker）。
+- **复合索引**：`schema.sql` 新增 `idx_item_icon_groups_user_sort(user_id, sort, id)` 覆盖 `getGroupList` / `getAllData` 的 `WHERE user_id ORDER BY sort, id` 热点查询，移除冗余的 `idx_item_icons_group_id` 与死索引 `idx_users_token`。增量脚本见 `migrations/2026-06-27-add-group-sort-index.sql`。
+- **边缘缓存**：`/api/favicon-proxy` 上游 `fetch(url, { cf: { cacheTtl: 86400, cacheEverything: true } })`（同 colo 24h 内仅首次回源）；`/panel/itemIcon/getSiteFavicon` 响应 `Cache-Control: public, max-age=600, s-maxage=3600`；`/settings/about` `CDN-Cache-Control: max-age=30`。
+
+### 前端加载与渲染
+- **KeepAlive 修复**：`HomeAppStarter.vue` 的 `<KeepAlive>` 直接包裹 v-if / v-else-if 组件链，Tab 切换不重复触发 `onMounted`（不重复请求列表）。
+- **v-memo**：`home/index.vue` 视图模式 `HomeItemCard` v-for 加 `v-memo="[item.id, item.icon?.src, ...]"`，删除单卡片不重渲染其余卡片。编辑模式 VueDraggable 分支不使用 v-memo。
+- **shallowRef + triggerRef**：`useDataLoader.ts` 的 `groups` 改 `shallowRef`，深层 splice 后 `triggerRef(groups)`；整体替换无需 trigger。
+- **useWallpaper 降阻塞**：默认预加载 36→12，`requestIdleCallback` 包裹循环（fallback `setTimeout(_, 0)`），两个 watchEffect 合并为一个。
+- **Bundle 拆分**：`vite.config.ts` `manualChunks` 含 `'icons': ['lucide-vue-next']`；`locales/index.ts` 非默认 locale（en-US）改 `() => import('./en-US.json')` 懒加载。
+- **getInit 缓存**：`useDataLoader.ts` `loadInitData` 走 `cachedRequest('init', ..., 30)`，`refreshAll` 时 `invalidate('init')`。
+- **HomeSidebar 优化**：移除 `prefetchAllChunksIdle`（与 hover 预取重复）；`scrollToGroup` 在 `onMounted` 缓存 `.group-section` NodeList；`resize` 加 150ms 节流。
+
+### 结构清理（间接性能影响）
+- 删除前端全局 `typings/index.d.ts` namespace，类型迁移到 `frontend/src/modules/*/types.ts`（消除双轨类型系统漂移）。
+- 后端 `types.ts` 中 DTO 改为 `z.infer<typeof xxxSchema>`，从 `validator.ts` 导入 schema（消除 schema 与 DTO 重复定义）。
+- 删除 `src/modules/shared/logger.ts` 中 `LEVEL_PRIORITY` / `shouldLog` / `MIN_LEVEL` 死逻辑。
+- 合并 `auth/service.ts` 与 `users/service.ts` 的 `formatUserInfo` + `USER_SELECT` 到 `src/modules/shared/userFormatter.ts`。
+- 删除 12 个未使用的 shadcn-vue 子组件（详见 `MODIFICATIONS.md`）。
+
+---
+
+## 12. 测试与验证流程
 
 ### CI 工作流
 - **PR 检查**（`.github/workflows/pr-check.yml`，pnpm 10.15.1 + Node 24）：触发于 PR 到 `main`，自动运行：
@@ -409,7 +436,7 @@ pnpm run typecheck && pnpm --filter sun-panel-frontend run typecheck && pnpm run
 
 ---
 
-## 12. 常见任务示例
+## 13. 常见任务示例
 
 ### 示例 A：新增一个后端 API 模块（以 `bookmark` 为例）
 

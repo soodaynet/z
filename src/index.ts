@@ -58,7 +58,9 @@ app.get('/api/favicon-proxy', async (c) => {
   }
   try {
     const upstream = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${sz}`
-    const resp = await fetch(upstream)
+    // 启用 Cloudflare 边缘缓存（24h），与响应 Cache-Control: max-age=2592000 对齐，
+    // 同一 colo 24h 内对相同 domain 的代理仅首次回源 google。
+    const resp = await fetch(upstream, { cf: { cacheTtl: 86400, cacheEverything: true } })
     if (!resp.ok) {
       return c.json({ code: 502, msg: '上游服务不可用', data: null }, 502)
     }

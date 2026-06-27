@@ -1,4 +1,5 @@
 import { SITE_CACHE_KEY } from './storageKeys'
+import type { SiteConfig } from '@/modules/panel/types'
 
 function detectFaviconType(url: string): string {
   const ext = url.split('?')[0].split('.').pop()?.toLowerCase()
@@ -34,10 +35,10 @@ function updateFavicon(url: string) {
 
 export { updateFavicon, getCachedSiteConfig }
 
-function getCachedSiteConfig(): Panel.SiteConfig {
+function getCachedSiteConfig(): SiteConfig {
   try {
     const cached = localStorage.getItem(SITE_CACHE_KEY)
-    if (cached) return JSON.parse(cached) as Panel.SiteConfig
+    if (cached) return JSON.parse(cached) as SiteConfig
   } catch { /* ignore */ }
   return {}
 }

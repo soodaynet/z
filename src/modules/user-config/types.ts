@@ -1,3 +1,6 @@
+import type { z } from 'zod'
+import type { userConfigSchema } from './validator'
+
 // ========== 数据库行类型 ==========
 
 // user_configs 表行
@@ -21,7 +24,4 @@ export interface UserConfigData {
 export type UserConfigResponse = UserConfigData
 
 // POST /set 请求体
-export interface UserConfigSetBody {
-  panel?: Record<string, unknown>
-  searchEngine?: Record<string, unknown>
-}
+export type UserConfigSetBody = z.infer<typeof userConfigSchema>

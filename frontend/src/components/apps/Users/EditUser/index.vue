@@ -27,10 +27,11 @@ import {
 } from '@/components/ui/select'
 import { createUser, updateUser } from '@/modules'
 import type { UserFormData } from '@/modules'
+import type { UserInfo } from '@/modules/auth/types'
 
 interface Props {
   visible: boolean
-  userInfo?: User.Info
+  userInfo?: UserInfo
 }
 
 interface Emit {

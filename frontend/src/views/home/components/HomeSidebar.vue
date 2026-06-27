@@ -41,8 +41,13 @@ watch(mobileMenuOpen, (open) => {
   }
 })
 
+// resize 节流：避免拖动窗口时高频触发重排（参考 HomeAppStarter 的节流模式）
+let resizeTimer: ReturnType<typeof setTimeout> | null = null
 function handleResize() {
-  checkMobile()
+  if (resizeTimer) clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    checkMobile()
+  }, 150)
 }
 
 const navItems = computed(() => {
@@ -52,9 +57,14 @@ const navItems = computed(() => {
   }))
 })
 
+// 缓存 .group-section NodeList，避免每次点击都 querySelectorAll
+let groupSectionsCache: NodeListOf<Element> | null = null
 function scrollToGroup(index: number) {
-  const groups = document.querySelectorAll('.group-section')
-  const target = groups[index]
+  // 长度与导航项不匹配时（分组增删）重新查询，否则复用缓存
+  if (!groupSectionsCache || groupSectionsCache.length !== navItems.value.length) {
+    groupSectionsCache = document.querySelectorAll('.group-section')
+  }
+  const target = groupSectionsCache[index]
   if (target) {
     const top = target.getBoundingClientRect().top + window.scrollY - scrollOffset
     window.scrollTo({ top, behavior: 'smooth' })
@@ -84,33 +94,6 @@ function prefetchSettingsChunk() {
   })
 }
 
-// 空闲时间预取全部 async chunk（去重）
-const prefetchedChunks = new Set<string>()
-function prefetchAllChunksIdle() {
-  if (prefetchedChunks.has('app-starter')) return
-  prefetchedChunks.add('app-starter')
-  prefetchedChunks.add('edit-icon-modal')
-  prefetchedChunks.add('iframe-modal')
-  // 显式 import 字面量，确保 bundler 识别为 chunk 拆分
-  Promise.all([
-    import('./HomeAppStarter.vue'),
-    import('./HomeEditIconModal.vue'),
-    import('./HomeIframeModal.vue'),
-  ]).catch(() => {
-    // 预取失败则清空标记，允许下次重试
-    prefetchedChunks.clear()
-  })
-}
-
-// 兼容不支持 requestIdleCallback 的浏览器，降级为 setTimeout
-const scheduleIdle = (cb: () => void) => {
-  if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(cb, { timeout: 3000 })
-  } else {
-    setTimeout(cb, 1500)
-  }
-}
-
 function handleLogout() {
   authStore.removeToken()
   router.push('/login')
@@ -119,14 +102,11 @@ function handleLogout() {
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', handleResize, { passive: true })
-  // 空闲时间预取弹窗 chunk，点击时几乎立即可用
-  scheduleIdle(() => {
-    prefetchAllChunksIdle()
-  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  if (resizeTimer) clearTimeout(resizeTimer)
   // 组件卸载时恢复 body 滚动，避免遗留锁定
   if (typeof document !== 'undefined') {
     document.body.style.overflow = ''
