@@ -23,9 +23,9 @@ export interface UserFormData {
   id?: number
 }
 
-/** 用户配置（面板 + 搜索引擎） */
+/** 用户配置（面板 + 搜索引擎），两者均可独立保存 */
 export interface UserConfig {
-  panel: Record<string, unknown>
+  panel?: Record<string, unknown>
   searchEngine?: Record<string, unknown>
 }
 

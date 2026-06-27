@@ -15,7 +15,9 @@ import PanelAnnounceSettings from './panels/PanelAnnounceSettings.vue'
 import PanelGroupManage from './panels/PanelGroupManage.vue'
 import PanelImportExport from './panels/PanelImportExport.vue'
 import PanelSiteSettings from './panels/PanelSiteSettings.vue'
+import PanelSearchSettings from './panels/PanelSearchSettings.vue'
 import AppStarterSidebar from './AppStarterSidebar.vue'
+import type { SearchEngineConfig } from '@/modules/panel/types'
 
 interface App {
   name: string
@@ -38,12 +40,14 @@ const props = defineProps<{
   visible: boolean
   siteConfig: Panel.SiteConfig
   groups: ItemGroup[]
+  searchEngineConfig: SearchEngineConfig
   onSaved: () => void
 }>()
 
 const emit = defineEmits<{
   (e: 'update:visible', visible: boolean): void
   (e: 'update:siteConfig', config: Panel.SiteConfig): void
+  (e: 'update:searchEngineConfig', config: SearchEngineConfig): void
   (e: 'groupSaved'): void
 }>()
 
@@ -70,6 +74,7 @@ const apps = computed<App[]>(() => {
     { name: '公告设置', key: 'Announce', icon: '📢' },
     { name: '分组管理', key: 'GroupManage', icon: '📁' },
     { name: '导入导出', key: 'ImportExport', icon: '📦' },
+    { name: '搜索引擎', key: 'SearchSettings', icon: '🔍' },
   ]
   if (authStore.isAdmin) {
     list.push({ name: '用户管理', key: 'Users', icon: '👥', adminOnly: true })
@@ -200,6 +205,13 @@ function handleGroupSaved() {
                 <PanelImportExport
                   v-if="activeApp === 'ImportExport'"
                   :on-saved="props.onSaved"
+                />
+
+                <!-- ====== 搜索引擎 ====== -->
+                <PanelSearchSettings
+                  v-if="activeApp === 'SearchSettings'"
+                  :search-engine-config="searchEngineConfig"
+                  @update:search-engine-config="(cfg) => $emit('update:searchEngineConfig', cfg)"
                 />
 
                 <!-- ====== 用户管理 ====== -->

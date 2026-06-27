@@ -11,11 +11,14 @@ import { useItemEditor } from './composables/useItemEditor'
 import { useSiteConfig, SITE_CACHE_KEY } from './composables/useSiteConfig'
 import { useWallpaper } from './composables/useWallpaper'
 import { useDataLoader, type ItemGroup } from './composables/useDataLoader'
+import { getDefaultSearchEngineConfig } from './composables/useSearch'
+import type { SearchEngineConfig } from '@/modules/panel/types'
 // 首屏必须同步加载的
 import HomeSidebar from './components/HomeSidebar.vue'
 import HomeLogo from './components/HomeLogo.vue'
 import HomeWallpaper from './components/HomeWallpaper.vue'
 import HomeItemCard from './components/HomeItemCard.vue'
+import HomeSearchBar from './components/HomeSearchBar.vue'
 
 // 懒加载的非首屏组件
 const HomeAppStarter = defineAsyncComponent(() => import('./components/HomeAppStarter.vue'))
@@ -82,6 +85,12 @@ function applySiteConfigToDom(config: Panel.SiteConfig) {
   updateFavicon(config.favicon_url || '')
 }
 
+// 搜索引擎配置：初始用前端默认占位，/init 返回后由 useDataLoader 回调覆盖
+const searchEngineConfig = ref<SearchEngineConfig>(getDefaultSearchEngineConfig())
+function handleEngineChanged(cfg: SearchEngineConfig) {
+  searchEngineConfig.value = cfg
+}
+
 const { groups, visibleGroups, loadData, loadInitData, refreshAll } = useDataLoader({
   authStore,
   panelState,
@@ -90,6 +99,7 @@ const { groups, visibleGroups, loadData, loadInitData, refreshAll } = useDataLoa
   preloadIcons: preloadIconImages,
   onSiteConfigUpdated: applySiteConfigToDom,
   markDataReady,
+  onSearchEngineUpdated: handleEngineChanged,
 })
 
 const { announcementVisible, announcementText, startAnnouncementTimer, dismissAnnouncement } = useAnnouncement()
@@ -276,9 +286,6 @@ watch(() => authStore.isLoggedIn, (val) => {
     <!-- 侧边栏分组导航 -->
     <HomeSidebar :groups="visibleGroups" @open-settings="starterShow = true" @sidebar-expanded="handleSidebarExpanded" />
 
-    <!-- Logo + 访客标识（独立固定定位组件） -->
-    <HomeLogo />
-
     <!-- 公告 -->
     <Transition name="announce-fade">
       <div
@@ -301,6 +308,18 @@ watch(() => authStore.isLoggedIn, (val) => {
 
     <!-- 主内容区域 -->
     <div class="relative z-10 mx-auto flex-1 w-full" :style="containerStyle">
+
+      <!-- Logo + 访客标识（流式居中） -->
+      <HomeLogo />
+
+      <!-- 搜索框 -->
+      <HomeSearchBar
+        v-if="panelState.panelConfig.searchBoxShow"
+        :visible-groups="visibleGroups"
+        :search-engine-config="searchEngineConfig"
+        @open-url="openUrl"
+        @engine-changed="handleEngineChanged"
+      />
 
       <!-- 内容区域（始终渲染，loading 结束后图标自动填充） -->
       <div>
@@ -401,8 +420,10 @@ watch(() => authStore.isLoggedIn, (val) => {
       v-model:visible="starterShow"
       :site-config="siteConfig"
       :groups="groups"
+      :search-engine-config="searchEngineConfig"
       :on-saved="handleStarterSaved"
       @update:site-config="handleSiteConfigUpdate"
+      @update:search-engine-config="handleEngineChanged"
       @group-saved="handleGroupSaved"
     />
 

@@ -3,6 +3,7 @@ import type { useAuthStore, usePanelState } from '@/store'
 import { getAllData, getInit } from '@/modules'
 import { cachedRequest, invalidateCacheByPrefix, invalidateCache } from '@/utils/requestCache'
 import { PUBLIC_MODE_KEY } from '@/utils/storageKeys'
+import type { SearchEngineConfig } from '@/modules/panel/types'
 
 export interface ItemGroup extends Panel.ItemIconGroup {
   hoverStatus?: boolean
@@ -16,6 +17,7 @@ interface InitData {
   panelConfig: Panel.panelConfig
   about: Record<string, string>
   authInfo: { user: User.Info | null; visitMode: number }
+  searchEngine?: SearchEngineConfig
 }
 
 interface PreloadGroup {
@@ -30,8 +32,9 @@ export function useDataLoader(options: {
   preloadIcons: (groups: PreloadGroup[], count?: number) => void
   onSiteConfigUpdated: (config: Panel.SiteConfig) => void
   markDataReady: () => void
+  onSearchEngineUpdated?: (config: SearchEngineConfig) => void
 }) {
-  const { authStore, panelState, siteConfig, syncWallpaper, preloadIcons, onSiteConfigUpdated, markDataReady } = options
+  const { authStore, panelState, siteConfig, syncWallpaper, preloadIcons, onSiteConfigUpdated, markDataReady, onSearchEngineUpdated } = options
 
   const groups = ref<ItemGroup[]>([])
   const loading = ref(true)
@@ -89,7 +92,7 @@ export function useDataLoader(options: {
     try {
       const res = await getInit<InitData>()
       if (res.code === 0 && res.data) {
-        const { groups: rawGroups, itemsMap, panelConfig, about, authInfo } = res.data
+        const { groups: rawGroups, itemsMap, panelConfig, about, authInfo, searchEngine } = res.data
 
         // 1. 认证信息
         if (authInfo) {
@@ -128,6 +131,11 @@ export function useDataLoader(options: {
         syncWallpaper()
         markDataReady()
         preloadIcons(groups.value)
+
+        // 4. 搜索引擎配置（仅 /init 返回）
+        if (searchEngine) {
+          onSearchEngineUpdated?.(searchEngine)
+        }
       }
     } catch (e) {
       console.error(e)

@@ -1,3 +1,8 @@
+// ========== 搜索引擎类型（从 shared 引入并 re-export，供前端与各模块复用） ==========
+
+import type { SearchEngine, SearchEngineConfig } from '../shared/searchEngine'
+export type { SearchEngine, SearchEngineConfig }
+
 // ========== init 接口响应类型 ==========
 
 /** 认证用户信息（精简版，用于 init 响应） */
@@ -53,4 +58,5 @@ export interface InitPanelData {
 export interface InitResponse extends InitPanelData {
   about: Record<string, string>
   authInfo: InitAuthInfo
+  searchEngine: SearchEngineConfig
 }

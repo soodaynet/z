@@ -74,8 +74,20 @@
       "sun": "星期日"
     },
     "searchBox": {
-      "inputPlaceholder": "请输入搜索内容",
-      "openWithNewOpen": "新窗口打开"
+      "inputPlaceholder": "搜索应用或输入关键词...",
+      "openWithNewOpen": "新窗口打开",
+      "localIcons": "本地图标",
+      "noMatch": "无匹配图标",
+      "searchWith": "按回车使用 {engine} 搜索",
+      "engineSettings": "搜索引擎管理",
+      "addEngine": "新增引擎",
+      "engineName": "引擎名称",
+      "engineUrl": "搜索 URL（末尾拼接关键词）",
+      "engineIcon": "图标 URL（可选）",
+      "deleteEngine": "删除",
+      "currentDefault": "当前默认",
+      "resetDefault": "恢复默认",
+      "saved": "搜索引擎配置已保存"
     }
   },
   "apps": {

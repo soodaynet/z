@@ -2,6 +2,8 @@
  * 设置模块类型定义
  */
 
+import type { SearchEngineConfig } from '@/modules/panel/types'
+
 /** 站点全局设置（键值对集合） */
 export type SiteSettings = Record<string, string>
 
@@ -17,7 +19,9 @@ export interface AboutResponse {
   favicon_url?: string
   panel_public_user_id?: string
   default_guest_mode?: string
-  [key: string]: string | number | undefined
+  /** 搜索引擎配置（仅 /init 返回，/about 不返回） */
+  searchEngine?: SearchEngineConfig
+  [key: string]: string | number | undefined | SearchEngineConfig
 }
 
 /** 单项系统设置 */

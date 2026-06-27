@@ -74,8 +74,20 @@
       "sun": "Sunday"
     },
     "searchBox": {
-      "inputPlaceholder": "Please enter search content",
-      "openWithNewOpen": "Open in new window"
+      "inputPlaceholder": "Search apps or enter keywords...",
+      "openWithNewOpen": "Open in new window",
+      "localIcons": "Local Icons",
+      "noMatch": "No matching icons",
+      "searchWith": "Press Enter to search with {engine}",
+      "engineSettings": "Search Engine Manager",
+      "addEngine": "Add Engine",
+      "engineName": "Engine Name",
+      "engineUrl": "Search URL (append keyword)",
+      "engineIcon": "Icon URL (optional)",
+      "deleteEngine": "Delete",
+      "currentDefault": "Default",
+      "resetDefault": "Reset to Default",
+      "saved": "Search engine config saved"
     }
   },
   "apps": {
