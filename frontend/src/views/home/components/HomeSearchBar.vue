@@ -120,7 +120,7 @@ onUnmounted(() => {
             <ChevronDown class="size-3 opacity-70" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent class="glass-panel border-white/10 text-white min-w-[150px]" align="start">
+        <DropdownMenuContent class="search-dropdown-glass border-white/10 text-white min-w-[150px]" align="start">
           <DropdownMenuItem
             v-for="(eng, i) in engineConfig.engines"
             :key="i"
@@ -215,14 +215,18 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-/* 搜索下拉面板毛玻璃：在公告设置（--ann-blur / --ann-opacity）基础上 +20% */
+<!-- 非 scoped 全局：引擎切换菜单 DropdownMenuContent 会 teleport 到 body，scoped 样式无法命中 -->
+<style>
+/* 搜索下拉面板 + 引擎切换菜单毛玻璃：在公告设置（--ann-blur / --ann-opacity）基础上 +20% */
 .search-dropdown-glass {
   background-color: rgba(255, 255, 255, calc(var(--ann-opacity, 0.15) * 1.2));
   backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
   -webkit-backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
+</style>
+
+<style scoped>
 /* 隐藏本地图标列表滚动条，与主页面一致（可滚动但不显示） */
 .search-scroll-hide {
   scrollbar-width: none;
