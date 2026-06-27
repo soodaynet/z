@@ -49,9 +49,6 @@ export default tseslint.config(
       'vue/no-v-html': 'off',
       'vue/require-default-prop': 'off',
       'vue/attribute-hyphenation': 'off',
-      // v-memo 与 v-for 同元素是 Vue 3 官方支持的标准用法（见 https://vuejs.org/guide/built-ins/v-memo.html），
-      // eslint-plugin-vue 的 valid-v-memo 规则对此误报，关闭之
-      'vue/valid-v-memo': 'off',
     },
   },
 )

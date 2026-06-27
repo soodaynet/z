@@ -385,12 +385,10 @@ watch(() => authStore.isLoggedIn, (val) => {
               />
             </VueDraggable>
             <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
-              <!-- v-memo 与 v-for 同元素：Vue 3 官方支持的标准用法，仅当依赖数组变化时才重渲染该卡片 -->
               <div
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
                 :title="item.description || undefined"
-                v-memo="[item.id, item.icon?.src, item.icon?.backgroundColor, item.icon?.text, item.title, item.description, eagerKeySet.has(`${gi}-${ii}`)]"
               >
                 <HomeItemCard
                   :item="item"
