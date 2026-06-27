@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { VueDraggable } from 'vue-draggable-plus'
 import { saveGroupSort } from '@/modules'
 
@@ -60,39 +61,43 @@ function handleDeleteGroup(group: ItemGroup) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 h-full">
-    <!-- 添加按钮固定顶部 -->
-    <div class="flex items-center gap-2 flex-shrink-0">
-      <Button size="sm" @click="handleAddGroup">添加分组</Button>
-      <span class="text-xs text-muted-foreground">拖拽分组可调整排序</span>
-    </div>
-    <!-- 拖拽列表可滚动 -->
-    <VueDraggable
-      v-model="localGroups"
-      :animation="200"
-      class="flex flex-col gap-2 overflow-auto flex-1 min-h-0"
-      @end="handleGroupSortEnd"
-    >
-      <div
-        v-for="(group, gi) in localGroups"
-        :key="group.id || gi"
-        class="flex items-center justify-between p-3 border rounded cursor-move bg-white/50 dark:bg-gray-800/50"
-      >
-        <div class="flex items-center gap-2">
-          <span class="text-gray-400 text-sm cursor-move">⠿</span>
-          <span class="font-medium">{{ group.title }}</span>
-          <span
-            class="text-xs px-1.5 py-0.5 rounded"
-            :class="group.publicVisible !== 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-          >
-            {{ group.publicVisible !== 0 ? '访客可见' : '隐藏' }}
-          </span>
-        </div>
-        <div class="flex gap-2">
-          <Button size="sm" variant="outline" @click="handleEditGroup(group)">编辑</Button>
-          <Button size="sm" variant="destructive" @click="handleDeleteGroup(group)">删除</Button>
-        </div>
+  <Card class="h-full">
+    <CardHeader>
+      <div class="flex items-center justify-between gap-2">
+        <CardTitle>分组管理</CardTitle>
+        <Button size="sm" @click="handleAddGroup">添加分组</Button>
       </div>
-    </VueDraggable>
-  </div>
+      <p class="text-xs text-muted-foreground">拖拽分组可调整排序</p>
+    </CardHeader>
+    <!-- 拖拽列表可滚动 -->
+    <CardContent class="flex-1 min-h-0 flex flex-col">
+      <VueDraggable
+        v-model="localGroups"
+        :animation="200"
+        class="flex flex-col gap-2 overflow-auto flex-1 min-h-0"
+        @end="handleGroupSortEnd"
+      >
+        <div
+          v-for="(group, gi) in localGroups"
+          :key="group.id || gi"
+          class="flex items-center justify-between p-3 border rounded cursor-move bg-white/50 dark:bg-gray-800/50"
+        >
+          <div class="flex items-center gap-2">
+            <span class="text-gray-400 text-sm cursor-move">⠿</span>
+            <span class="font-medium">{{ group.title }}</span>
+            <span
+              class="text-xs px-1.5 py-0.5 rounded"
+              :class="group.publicVisible !== 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
+            >
+              {{ group.publicVisible !== 0 ? '访客可见' : '隐藏' }}
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <Button size="sm" variant="outline" @click="handleEditGroup(group)">编辑</Button>
+            <Button size="sm" variant="destructive" @click="handleDeleteGroup(group)">删除</Button>
+          </div>
+        </div>
+      </VueDraggable>
+    </CardContent>
+  </Card>
 </template>

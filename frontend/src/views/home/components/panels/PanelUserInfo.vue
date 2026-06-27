@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { toast } from '@/components/ui/sonner'
 import { useAuthStore, useAppStore } from '@/store'
 import { updateUserInfo, updatePassword } from '@/modules'
@@ -84,26 +85,32 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-4">
     <!-- 用户信息 -->
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">用户信息</h3>
-      <div class="flex items-center gap-2 sm:gap-3">
-        <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-          {{ authStore.userInfo?.name?.charAt(0) || '?' }}
+    <Card>
+      <CardHeader>
+        <CardTitle>用户信息</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+            {{ authStore.userInfo?.name?.charAt(0) || '?' }}
+          </div>
+          <div>
+            <div class="font-medium">{{ authStore.userInfo?.name }}</div>
+            <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
+            <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
+          </div>
         </div>
-        <div>
-          <div class="font-medium">{{ authStore.userInfo?.name }}</div>
-          <div class="text-sm text-muted-foreground">{{ authStore.userInfo?.username }}</div>
-          <div class="text-xs text-muted-foreground">角色: {{ authStore.userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
 
     <!-- 账户安全：名称 + 密码 -->
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">账户安全</h3>
-      <div class="flex flex-col gap-3">
+    <Card>
+      <CardHeader>
+        <CardTitle>账户安全</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-3">
         <!-- 修改名称 -->
         <div>
           <label class="block text-sm mb-1 font-medium">账户名称</label>
@@ -137,58 +144,62 @@ function handleLogout() {
             <Button size="sm" variant="link" class="h-auto p-0" @click="startEditPassword">修改</Button>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
 
     <!-- 偏好设置：主题 + 语言 -->
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">偏好设置</h3>
-      <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
-        <!-- 主题 -->
-        <div>
-          <label class="block text-sm mb-1 font-medium">主题</label>
-          <div class="flex gap-2">
-            <Button
-              size="sm"
-              :variant="appStore.theme === 'dark' ? 'default' : 'outline'"
-              @click="appStore.setTheme('dark')"
-              >深色</Button
-            >
-            <Button
-              size="sm"
-              :variant="appStore.theme === 'light' ? 'default' : 'outline'"
-              @click="appStore.setTheme('light')"
-              >浅色</Button
-            >
-            <Button
-              size="sm"
-              :variant="appStore.theme === 'auto' ? 'default' : 'outline'"
-              @click="appStore.setTheme('auto')"
-              >跟随系统</Button
-            >
+    <Card>
+      <CardHeader>
+        <CardTitle>偏好设置</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="grid grid-cols-1 @[600px]:grid-cols-2 gap-4">
+          <!-- 主题 -->
+          <div>
+            <label class="block text-sm mb-1 font-medium">主题</label>
+            <div class="flex gap-2">
+              <Button
+                size="sm"
+                :variant="appStore.theme === 'dark' ? 'default' : 'outline'"
+                @click="appStore.setTheme('dark')"
+                >深色</Button
+              >
+              <Button
+                size="sm"
+                :variant="appStore.theme === 'light' ? 'default' : 'outline'"
+                @click="appStore.setTheme('light')"
+                >浅色</Button
+              >
+              <Button
+                size="sm"
+                :variant="appStore.theme === 'auto' ? 'default' : 'outline'"
+                @click="appStore.setTheme('auto')"
+                >跟随系统</Button
+              >
+            </div>
           </div>
-        </div>
 
-        <!-- 语言 -->
-        <div>
-          <label class="block text-sm mb-1 font-medium">语言</label>
-          <div class="flex gap-2">
-            <Button
-              size="sm"
-              :variant="appStore.language === 'zh-CN' ? 'default' : 'outline'"
-              @click="appStore.setLanguage('zh-CN')"
-              >中文</Button
-            >
-            <Button
-              size="sm"
-              :variant="appStore.language === 'en-US' ? 'default' : 'outline'"
-              @click="appStore.setLanguage('en-US')"
-              >English</Button
-            >
+          <!-- 语言 -->
+          <div>
+            <label class="block text-sm mb-1 font-medium">语言</label>
+            <div class="flex gap-2">
+              <Button
+                size="sm"
+                :variant="appStore.language === 'zh-CN' ? 'default' : 'outline'"
+                @click="appStore.setLanguage('zh-CN')"
+                >中文</Button
+              >
+              <Button
+                size="sm"
+                :variant="appStore.language === 'en-US' ? 'default' : 'outline'"
+                @click="appStore.setLanguage('en-US')"
+                >English</Button
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
 
     <!-- 退出登录 -->
     <Button variant="destructive" class="w-full" @click="handleLogout">退出登录</Button>

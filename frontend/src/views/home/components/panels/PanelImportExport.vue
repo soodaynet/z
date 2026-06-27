@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { toast } from '@/components/ui/sonner'
 import { getAllData, saveGroup, addItems } from '@/modules'
 import { cachedRequest } from '@/utils/requestCache'
@@ -108,17 +109,28 @@ async function importData(data: ExportData) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">导入导出</h3>
-      <div class="flex flex-col items-center gap-3">
+  <div class="flex flex-col gap-4">
+    <!-- 导出区 -->
+    <Card>
+      <CardHeader>
+        <CardTitle>导出数据</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-3">
         <p class="text-sm text-muted-foreground">导出格式为 .sun-panel.json，可跨设备备份和恢复</p>
+        <Button :disabled="importExportLoading" @click="handleExport">导出数据</Button>
+      </CardContent>
+    </Card>
+
+    <!-- 导入区 -->
+    <Card>
+      <CardHeader>
+        <CardTitle>导入数据</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-3">
+        <p class="text-sm text-muted-foreground">选择 .sun-panel.json 文件恢复数据</p>
         <input ref="fileInputRef" type="file" accept=".sun-panel.json,.json" class="hidden" @change="handleImportFile" />
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <Button :disabled="importExportLoading" @click="handleExport">导出数据</Button>
-          <Button variant="outline" :disabled="importExportLoading" @click="fileInputRef?.click()">导入数据</Button>
-        </div>
-      </div>
-    </div>
+        <Button variant="outline" :disabled="importExportLoading" @click="fileInputRef?.click()">导入数据</Button>
+      </CardContent>
+    </Card>
   </div>
 </template>

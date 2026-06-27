@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -150,115 +151,116 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="overflow-auto pt-2">
-
-    <div class="my-3">
-      <Button size="sm" @click="handleAdd">添加用户</Button>
-    </div>
-
-    <!-- 用户列表 -->
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>用户名</TableHead>
-          <TableHead>昵称</TableHead>
-          <TableHead>角色</TableHead>
-          <TableHead class="text-right">操作</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow v-if="tableIsLoading">
-          <TableCell :colspan="4" class="text-center text-muted-foreground">
-            加载中...
-          </TableCell>
-        </TableRow>
-        <TableRow v-else-if="userList.length === 0">
-          <TableCell :colspan="4" class="text-center text-muted-foreground">
-            暂无数据
-          </TableCell>
-        </TableRow>
-        <TableRow v-for="row in userList" :key="row.id">
-          <TableCell>
-            <span
-              v-if="publicVisitUserId && publicVisitUserId === row.id"
-              class="text-blue-600 dark:text-blue-400"
-            >[公开]-</span>{{ row.username }}<span
-              v-if="row.username === authStore.userInfo?.username"
-              class="text-muted-foreground"
-            >
-              (当前用户)</span>
-          </TableCell>
-          <TableCell>{{ row.name }}</TableCell>
-          <TableCell>
-            <Badge :variant="row.role === 1 ? 'default' : 'secondary'">
-              {{ row.role === 1 ? '管理员' : '普通用户' }}
-            </Badge>
-          </TableCell>
-          <TableCell class="text-right">
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button variant="ghost" size="sm">...</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem @select="handleEdit(row)">编辑</DropdownMenuItem>
-                <DropdownMenuItem @select="handleTogglePublic(row)">
-                  {{
-                    publicVisitUserId && publicVisitUserId === row.id
-                      ? '取消公开访问'
-                      : '设置为公开访问'
-                  }}
-                </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" @select="confirmDelete(row)">
-                  删除
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
-
-    <!-- 分页 -->
-    <div class="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
-      <div class="flex items-center gap-2">
-        <span class="text-muted-foreground">每页</span>
-        <Select
-          :model-value="String(pageSize)"
-          @update:model-value="handlePageSizeChange"
-        >
-          <SelectTrigger class="h-8 w-[80px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10</SelectItem>
-            <SelectItem value="30">30</SelectItem>
-            <SelectItem value="50">50</SelectItem>
-          </SelectContent>
-        </Select>
-        <span class="text-muted-foreground">条</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="page <= 1"
-          @click="gotoPage(page - 1)"
-        >
-          上一页
-        </Button>
-        <span class="text-muted-foreground">
-          第 {{ page }} / {{ totalPages }} 页（共 {{ total }} 条）
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="page >= totalPages"
-          @click="gotoPage(page + 1)"
-        >
-          下一页
-        </Button>
-      </div>
-    </div>
+  <div class="flex flex-col gap-4">
+    <Card>
+      <CardHeader class="flex flex-row items-center justify-between">
+        <CardTitle>用户列表</CardTitle>
+        <Button size="sm" @click="handleAdd">添加用户</Button>
+      </CardHeader>
+      <CardContent class="p-0">
+        <!-- 用户列表 -->
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>用户名</TableHead>
+              <TableHead>昵称</TableHead>
+              <TableHead>角色</TableHead>
+              <TableHead class="text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-if="tableIsLoading">
+              <TableCell :colspan="4" class="text-center text-muted-foreground">
+                加载中...
+              </TableCell>
+            </TableRow>
+            <TableRow v-else-if="userList.length === 0">
+              <TableCell :colspan="4" class="text-center text-muted-foreground">
+                暂无数据
+              </TableCell>
+            </TableRow>
+            <TableRow v-for="row in userList" :key="row.id">
+              <TableCell>
+                <span
+                  v-if="publicVisitUserId && publicVisitUserId === row.id"
+                  class="text-blue-600 dark:text-blue-400"
+                >[公开]-</span>{{ row.username }}<span
+                  v-if="row.username === authStore.userInfo?.username"
+                  class="text-muted-foreground"
+                >
+                  (当前用户)</span>
+              </TableCell>
+              <TableCell>{{ row.name }}</TableCell>
+              <TableCell>
+                <Badge :variant="row.role === 1 ? 'default' : 'secondary'">
+                  {{ row.role === 1 ? '管理员' : '普通用户' }}
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button variant="ghost" size="sm">...</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem @select="handleEdit(row)">编辑</DropdownMenuItem>
+                    <DropdownMenuItem @select="handleTogglePublic(row)">
+                      {{
+                        publicVisitUserId && publicVisitUserId === row.id
+                          ? '取消公开访问'
+                          : '设置为公开访问'
+                      }}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" @select="confirmDelete(row)">
+                      删除
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+      <CardFooter class="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-muted-foreground">每页</span>
+          <Select
+            :model-value="String(pageSize)"
+            @update:model-value="handlePageSizeChange"
+          >
+            <SelectTrigger class="h-8 w-[80px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="30">30</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+          <span class="text-muted-foreground">条</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="page <= 1"
+            @click="gotoPage(page - 1)"
+          >
+            上一页
+          </Button>
+          <span class="text-muted-foreground">
+            第 {{ page }} / {{ totalPages }} 页（共 {{ total }} 条）
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="page >= totalPages"
+            @click="gotoPage(page + 1)"
+          >
+            下一页
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
 
     <!-- 删除确认对话框 -->
     <Dialog :open="deleteDialogShow" @update:open="deleteDialogShow = $event">

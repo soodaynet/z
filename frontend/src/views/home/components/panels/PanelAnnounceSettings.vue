@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { saveSiteSettings } from '@/modules'
 import { useConfigEditor } from '../../composables/useConfigEditor'
 
@@ -41,10 +42,12 @@ async function handleSave() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">公告设置</h3>
-      <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>公告设置</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>公告内容</Label>
           <Textarea
@@ -62,11 +65,14 @@ async function handleSave() {
             max="999"
           />
         </div>
-      </div>
-    </div>
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">Logo 设置</h3>
-      <div class="flex flex-col gap-3">
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Logo 设置</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-3">
         <div class="flex flex-col gap-2">
           <Label>Logo 文字</Label>
           <Input v-model="localConfig.logoText" placeholder="输入 Logo 文字" />
@@ -76,25 +82,23 @@ async function handleSave() {
           <Input v-model="localConfig.logoImageSrc" placeholder="输入图片URL" />
         </div>
         <div class="flex flex-col gap-2">
-          <Label>Logo 距顶部 (px)</Label>
-          <Input v-model="localConfig.logoPositionTop" type="number" />
-        </div>
-        <div class="flex flex-col gap-2">
-          <Label>Logo 距左侧 (px)</Label>
-          <Input v-model="localConfig.logoPositionLeft" type="number" />
-        </div>
-        <div class="flex flex-col gap-2">
           <Label>Logo 图片高度 (px)</Label>
           <Input v-model="localConfig.logoSize" type="number" />
         </div>
-      </div>
-    </div>
-    <div>
-      <h3 class="text-sm font-medium text-foreground mb-2">毛玻璃效果</h3>
-      <p class="text-sm text-muted-foreground mb-2">控制登录卡片、侧边栏、公告弹窗、Logo 的模糊和透明度效果</p>
-      <div class="flex flex-col gap-3">
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>毛玻璃效果</CardTitle>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-3">
+        <p class="text-sm text-muted-foreground">控制登录卡片、侧边栏、公告弹窗、Logo 的模糊和透明度效果</p>
         <div class="flex flex-col gap-2">
-          <Label>背景模糊度: {{ localConfig.announcementBlur ?? 12 }}</Label>
+          <div class="flex items-center justify-between">
+            <Label>背景模糊度</Label>
+            <span class="text-sm text-muted-foreground">{{ localConfig.announcementBlur ?? 12 }}</span>
+          </div>
           <Slider
             :model-value="[localConfig.announcementBlur ?? 12]"
             @update:model-value="(v: number[] | undefined) => (localConfig.announcementBlur = v?.[0] ?? 12)"
@@ -103,7 +107,10 @@ async function handleSave() {
           />
         </div>
         <div class="flex flex-col gap-2">
-          <Label>遮罩不透明度: {{ localConfig.announcementMaskOpacity ?? 0.15 }}</Label>
+          <div class="flex items-center justify-between">
+            <Label>遮罩不透明度</Label>
+            <span class="text-sm text-muted-foreground">{{ localConfig.announcementMaskOpacity ?? 0.15 }}</span>
+          </div>
           <Slider
             :model-value="[localConfig.announcementMaskOpacity ?? 0.15]"
             @update:model-value="(v: number[] | undefined) => (localConfig.announcementMaskOpacity = v?.[0] ?? 0.15)"
@@ -112,8 +119,9 @@ async function handleSave() {
             :step="0.05"
           />
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
+
     <div class="flex justify-end gap-2">
       <Button @click="handleSave">保存</Button>
     </div>

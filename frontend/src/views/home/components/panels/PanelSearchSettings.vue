@@ -138,18 +138,16 @@ async function handleSave() {
         </CardContent>
       </Card>
     </div>
-    <div class="flex flex-wrap justify-between gap-2">
+    <div class="flex justify-end gap-2">
       <Button variant="outline" @click="handleResetDefault">
         <RotateCcw class="size-4" />
         {{ t('deskModule.searchBox.resetDefault') }}
       </Button>
-      <div class="flex gap-2">
-        <Button variant="outline" @click="handleAdd">
-          <Plus class="size-4" />
-          {{ t('deskModule.searchBox.addEngine') }}
-        </Button>
-        <Button @click="handleSave">{{ t('common.save') }}</Button>
-      </div>
+      <Button variant="outline" @click="handleAdd">
+        <Plus class="size-4" />
+        {{ t('deskModule.searchBox.addEngine') }}
+      </Button>
+      <Button @click="handleSave">{{ t('common.save') }}</Button>
     </div>
   </div>
 </template>

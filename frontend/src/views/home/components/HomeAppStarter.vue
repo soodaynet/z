@@ -94,7 +94,7 @@ function handleResize() {
   }, 150)
 }
 
-const layoutHeight = computed(() => 'min(85vh, 560px)')
+const layoutHeight = computed(() => 'min(90vh, 860px)')
 
 onMounted(() => {
   window.addEventListener('resize', handleResize, { passive: true })
