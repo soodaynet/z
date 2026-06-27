@@ -179,10 +179,7 @@ onUnmounted(() => {
           @click="onSelectMatch(i)"
           @mouseenter="highlightIndex = i"
         >
-          <div
-            class="size-6 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0"
-            :style="{ backgroundColor: item.icon?.backgroundColor || 'transparent' }"
-          >
+          <div class="size-6 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
             <img
               v-if="item.icon?.src"
               :src="item.icon.src"
@@ -191,7 +188,12 @@ onUnmounted(() => {
               referrerpolicy="no-referrer"
               @error="($event.target as HTMLImageElement).style.display = 'none'"
             />
-            <span v-else class="text-xs font-bold">{{ item.icon?.text || item.title.charAt(0) }}</span>
+            <span
+              v-else
+              class="w-full h-full flex items-center justify-center text-xs font-bold"
+              :style="{ backgroundColor: item.icon?.backgroundColor || '#4a90d9' }"
+              >{{ item.icon?.text || item.title.charAt(0) }}</span
+            >
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm truncate">{{ item.title }}</div>
