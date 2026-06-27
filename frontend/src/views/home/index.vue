@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, onUnmounted, ref, computed, watch } from 'vue'
-import { VueDraggable } from 'vue-draggable-plus'
 import { ArrowUp } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
@@ -25,6 +24,10 @@ import HomeSearchBar from './components/HomeSearchBar.vue'
 const HomeAppStarter = defineAsyncComponent(() => import('./components/HomeAppStarter.vue'))
 const HomeEditIconModal = defineAsyncComponent(() => import('./components/HomeEditIconModal.vue'))
 const HomeIframeModal = defineAsyncComponent(() => import('./components/HomeIframeModal.vue'))
+// 拖拽组件仅在分组编辑模式下渲染，按需加载避免拖入首屏 chunk
+const VueDraggable = defineAsyncComponent(() =>
+  import('vue-draggable-plus').then((m) => m.VueDraggable),
+)
 import { useFavicon } from './composables/useFavicon'
 
 const authStore = useAuthStore()
@@ -92,7 +95,7 @@ function handleEngineChanged(cfg: SearchEngineConfig) {
   searchEngineConfig.value = cfg
 }
 
-const { groups, visibleGroups, initialLoaded, loadData, loadInitData, refreshAll } = useDataLoader({
+const { groups, visibleGroups, initialLoaded, loadData, loadInitData, applyCachedPanelData, refreshAll } = useDataLoader({
   authStore,
   panelState,
   siteConfig,
@@ -248,6 +251,8 @@ function handleGroupSaved() {
   refreshAll()
 }
 
+// FE-6: 优先同步读 localStorage panelData 缓存立即渲染（秒开），/init 网络返回后覆盖
+applyCachedPanelData()
 // 提前在 setup 阶段发起 /init 请求，与组件挂载并行，缩短首屏数据就绪时间
 const initPromise = loadInitData()
 
