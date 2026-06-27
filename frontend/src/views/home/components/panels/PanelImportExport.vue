@@ -88,20 +88,44 @@ async function handleImportFile(e: Event) {
   }
 }
 
+/**
+ * 规范化导入图标的 icon 字段
+ * 容忍历史导出数据中的 null/空对象/缺 itemType 形态：
+ * - null/undefined/非对象 → null（后端 .nullish() 接受）
+ * - 对象缺 itemType → 补默认值 0（图像类型，前端渲染只看 src/text/backgroundColor，itemType 不参与渲染）
+ */
+function normalizeIcon(icon: unknown): Panel.ItemIcon | null {
+  if (!icon || typeof icon !== 'object') return null
+  const obj = icon as Record<string, unknown>
+  return {
+    itemType: typeof obj.itemType === 'number' ? obj.itemType : 0,
+    src: typeof obj.src === 'string' ? obj.src : undefined,
+    text: typeof obj.text === 'string' ? obj.text : undefined,
+    backgroundColor: typeof obj.backgroundColor === 'string' ? obj.backgroundColor : undefined,
+  }
+}
+
 async function importData(data: ExportData) {
   const batchSize = 50
   for (const g of data.icons) {
+    // 创建分组，失败立即抛错（触发外层 catch 显示错误 toast）
     const groupRes = await saveGroup<Panel.ItemIconGroup>({ title: g.title, sort: g.sort, publicVisible: g.publicVisible ?? 1 })
-    if (groupRes.code === 0 && groupRes.data?.id) {
-      const groupId = groupRes.data.id
-      const items: Panel.ItemInfo[] = g.children.map((item) => ({
-        ...item,
-        itemIconGroupId: groupId,
-        openMethod: item.openMethod || 2,
-      }))
-      for (let i = 0; i < items.length; i += batchSize) {
-        const batch = items.slice(i, i + batchSize)
-        await addItems(batch)
+    if (groupRes.code !== 0 || !groupRes.data?.id) {
+      throw new Error(groupRes.msg || `分组「${g.title}」创建失败`)
+    }
+    const groupId = groupRes.data.id
+    const items: Panel.ItemInfo[] = g.children.map((item) => ({
+      ...item,
+      icon: normalizeIcon(item.icon),
+      itemIconGroupId: groupId,
+      openMethod: item.openMethod || 2,
+    }))
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize)
+      const itemsRes = await addItems(batch)
+      // 批量添加失败立即抛错，避免静默丢失数据
+      if (itemsRes.code !== 0) {
+        throw new Error(itemsRes.msg || `分组「${g.title}」图标导入失败`)
       }
     }
   }

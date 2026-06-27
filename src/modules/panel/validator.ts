@@ -13,14 +13,15 @@ export const iconGroupSchema = z.object({
 /** 图标编辑/创建 */
 export const iconEditSchema = z.object({
   id: z.number().int().positive().optional(),
+  // shadcn-vue 生成，本地修改：放宽导入校验，容忍 null/空对象/缺 itemType 的历史导出数据
   icon: z
     .object({
-      itemType: z.number().int(),
+      itemType: z.number().int().optional(),
       src: z.string().optional(),
       text: z.string().optional(),
       backgroundColor: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
   title: z.string().min(1, '标题不能为空'),
   url: z.string(),
   description: z.string().optional(),
@@ -32,14 +33,15 @@ export const iconEditSchema = z.object({
 /** 批量添加图标 */
 export const iconAddMultipleSchema = z.array(
   z.object({
+    // 放宽导入校验，容忍 null/空对象/缺 itemType 的历史导出数据
     icon: z
       .object({
-        itemType: z.number().int(),
+        itemType: z.number().int().optional(),
         src: z.string().optional(),
         text: z.string().optional(),
         backgroundColor: z.string().optional(),
       })
-      .optional(),
+      .nullish(),
     title: z.string(),
     url: z.string(),
     description: z.string().optional(),
