@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-vue-next'
-import { preconnectOrigin } from '@/utils/preconnect'
 
 const props = defineProps<{
   item: Panel.ItemInfo
@@ -24,14 +23,7 @@ const loaded = ref(false)
 
 const realIconSrc = computed(() => props.item.icon?.src || '')
 
-// 外部域图标资源预连接，节省 TLS/连接时间；同源/重复 origin 自动去重
-watch(
-  realIconSrc,
-  (src) => {
-    if (src) preconnectOrigin(src)
-  },
-  { immediate: true },
-)
+// 注：preconnectOrigin 已上提到父组件（home/index.vue），避免每卡片注册 watcher
 </script>
 
 <template>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
 import { useAuthStore, usePanelState } from '@/store'
 import { deleteItems, saveItemSort } from '@/modules'
+import { preconnectOrigin } from '@/utils/preconnect'
 import { useAnnouncement } from './composables/useAnnouncement'
 import { useItemEditor } from './composables/useItemEditor'
 import { useSiteConfig, SITE_CACHE_KEY } from './composables/useSiteConfig'
@@ -101,6 +102,20 @@ const { groups, visibleGroups, loadData, loadInitData, refreshAll } = useDataLoa
   markDataReady,
   onSearchEngineUpdated: handleEngineChanged,
 })
+
+/**
+ * 批量为所有分组中的外部域图标 src 注入 preconnect
+ * 替代原先每卡片 watch 的 N 倍监听负担；preconnectOrigin 内部对同源/重复 origin 已去重
+ */
+function preconnectGroupIcons(groupsList: ItemGroup[]) {
+  for (const group of groupsList) {
+    if (!group.items) continue
+    for (const item of group.items) {
+      const src = item.icon?.src
+      if (src) preconnectOrigin(src)
+    }
+  }
+}
 
 const { announcementVisible, announcementText, startAnnouncementTimer, dismissAnnouncement } = useAnnouncement()
 const { editModalShow, editingItem, openAddItem, openEditItem, handleSaveItem } = useItemEditor(loadData)
@@ -237,7 +252,9 @@ onMounted(async () => {
   syncGlassVars()
   buildEagerSet()
   // 一次 /init 调用替代 3 次 API 请求，显著减少首次加载的网络往返
-  loadInitData()
+  await loadInitData()
+  // 数据就绪后一次性预连接所有图标 origin（替代 HomeItemCard 每卡片 watch）
+  preconnectGroupIcons(groups.value)
   startAnnouncementTimer()
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
@@ -368,10 +385,12 @@ watch(() => authStore.isLoggedIn, (val) => {
               />
             </VueDraggable>
             <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+              <!-- v-memo 与 v-for 同元素：Vue 3 官方支持的标准用法，仅当依赖数组变化时才重渲染该卡片 -->
               <div
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
                 :title="item.description || undefined"
+                v-memo="[item.id, item.icon?.src, item.icon?.backgroundColor, item.icon?.text, item.title, item.description, eagerKeySet.has(`${gi}-${ii}`)]"
               >
                 <HomeItemCard
                   :item="item"

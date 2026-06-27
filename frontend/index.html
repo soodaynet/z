@@ -9,13 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta http-equiv="Accept-CH" content="Sec-CH-Viewport-Width, Sec-CH-Viewport-Height" />
     <title></title>
-    <!-- 资源预连接：减少外域资源连接时间 -->
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-    <link rel="preconnect" href="//fonts.googleapis.com" crossorigin />
-    <!-- 预连接当前域名（API / 图片资源同源） -->
-    <link rel="preconnect" crossorigin />
-    <!-- Google Favicon API 预连接 -->
+    <!-- Google Favicon API 预连接（favicon-proxy 经 google s2 服务） -->
     <link rel="preconnect" href="https://t0.gstatic.cn" crossorigin />
     <link rel="dns-prefetch" href="https://t0.gstatic.cn" />
 
@@ -44,19 +38,17 @@
             document.title = siteConfig.site_title;
           }
           if (siteConfig.favicon_url) {
-            var timestamp = '_t=' + Date.now();
+            // 不再拼接 _t=Date.now() 时间戳：favicon 内容稳定，让浏览器走正常缓存
             var favUrl = siteConfig.favicon_url;
-            var sep = favUrl.indexOf('?') > -1 ? '&' : '?';
-            var favWithTs = favUrl + sep + timestamp;
 
             var iconLink = document.createElement('link');
             iconLink.rel = 'icon';
-            iconLink.href = favWithTs;
+            iconLink.href = favUrl;
             document.head.appendChild(iconLink);
 
             var appleLink = document.createElement('link');
             appleLink.rel = 'apple-touch-icon';
-            appleLink.href = favWithTs;
+            appleLink.href = favUrl;
             document.head.appendChild(appleLink);
           }
         }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,16 +8,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { toast } from '@/components/ui/sonner'
 import { useAuthStore, usePanelState } from '@/store'
 import { saveGroup, deleteGroups } from '@/modules'
-import UsersManage from '@/components/apps/Users/index.vue'
-import PanelUserInfo from './panels/PanelUserInfo.vue'
-import PanelStyleSettings from './panels/PanelStyleSettings.vue'
-import PanelAnnounceSettings from './panels/PanelAnnounceSettings.vue'
-import PanelGroupManage from './panels/PanelGroupManage.vue'
-import PanelImportExport from './panels/PanelImportExport.vue'
-import PanelSiteSettings from './panels/PanelSiteSettings.vue'
-import PanelSearchSettings from './panels/PanelSearchSettings.vue'
 import AppStarterSidebar from './AppStarterSidebar.vue'
 import type { SearchEngineConfig } from '@/modules/panel/types'
+
+// 8 个 Panel 改为按需加载：首屏只下载当前激活 Tab 的 chunk，其余在切换时再拉取
+const UsersManage = defineAsyncComponent(() => import('@/components/apps/Users/index.vue'))
+const PanelUserInfo = defineAsyncComponent(() => import('./panels/PanelUserInfo.vue'))
+const PanelStyleSettings = defineAsyncComponent(() => import('./panels/PanelStyleSettings.vue'))
+const PanelAnnounceSettings = defineAsyncComponent(() => import('./panels/PanelAnnounceSettings.vue'))
+const PanelGroupManage = defineAsyncComponent(() => import('./panels/PanelGroupManage.vue'))
+const PanelImportExport = defineAsyncComponent(() => import('./panels/PanelImportExport.vue'))
+const PanelSiteSettings = defineAsyncComponent(() => import('./panels/PanelSiteSettings.vue'))
+const PanelSearchSettings = defineAsyncComponent(() => import('./panels/PanelSearchSettings.vue'))
 
 interface App {
   name: string
@@ -171,9 +173,10 @@ function handleGroupSaved() {
         />
         <div class="flex-1 min-w-0 overflow-hidden @container" :style="{ height: layoutHeight }">
           <div class="h-full overflow-auto p-3 sm:p-4">
-            <!-- Tab 切换淡入过渡 -->
+            <!-- Tab 切换淡入过渡 + KeepAlive 缓存：避免重复 onMounted 请求 -->
             <Transition name="tab-fade" mode="out-in">
-              <div :key="activeApp">
+              <KeepAlive>
+                <div :key="activeApp">
                 <!-- ====== 我的信息 ====== -->
                 <PanelUserInfo v-if="activeApp === 'UserInfo'" />
 
@@ -225,7 +228,8 @@ function handleGroupSaved() {
                   :site-config="localSiteConfig"
                   @update:site-config="handleSiteConfigUpdate"
                 />
-              </div>
+                </div>
+              </KeepAlive>
             </Transition>
           </div>
         </div>
