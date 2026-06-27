@@ -162,10 +162,10 @@ onUnmounted(() => {
       <Search class="size-4 text-white/60 flex-shrink-0" />
     </div>
 
-    <!-- 搜索建议下拉面板 -->
+    <!-- 搜索建议下拉面板：毛玻璃基于公告设置（--ann-blur/--ann-opacity）再 +20% -->
     <div
       v-if="isDropdownOpen && (localMatches.length > 0 || searchQuery.trim())"
-      class="absolute left-0 right-0 mt-2 glass-panel rounded-xl border border-white/10 shadow-xl overflow-hidden text-white z-50"
+      class="absolute left-0 right-0 mt-2 search-dropdown-glass rounded-xl border border-white/10 shadow-xl overflow-hidden text-white z-50"
     >
       <!-- 本地图标区 -->
       <div class="px-3 py-1.5 text-xs text-white/50 border-b border-white/10">{{ t('deskModule.searchBox.localIcons') }}</div>
@@ -181,7 +181,7 @@ onUnmounted(() => {
         >
           <div
             class="size-6 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0"
-            :style="{ backgroundColor: item.icon?.backgroundColor || '#4a90d9' }"
+            :style="{ backgroundColor: item.icon?.backgroundColor || 'transparent' }"
           >
             <img
               v-if="item.icon?.src"
@@ -216,3 +216,13 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 搜索下拉面板毛玻璃：在公告设置（--ann-blur / --ann-opacity）基础上 +20% */
+.search-dropdown-glass {
+  background-color: rgba(255, 255, 255, calc(var(--ann-opacity, 0.15) * 1.2));
+  backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
+  -webkit-backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+</style>
