@@ -14,14 +14,6 @@ import {
   type ExportData,
 } from '@/utils/importExport'
 
-const props = defineProps<{
-  onSaved: () => void
-}>()
-
-const emit = defineEmits<{
-  (e: 'saved'): void
-}>()
-
 const importExportLoading = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
 
@@ -77,9 +69,8 @@ async function handleImportFile(e: Event) {
       return
     }
     await importData(result.data)
-    toast.success('导入成功，请刷新页面查看')
-    emit('saved')
-    props.onSaved()
+    toast.success('导入成功，正在刷新…')
+    window.location.reload()
   } catch (err) {
     toast.error(err instanceof Error ? err.message : '导入失败')
   } finally {
@@ -105,6 +96,7 @@ function normalizeIcon(icon: unknown): Panel.ItemIcon | null {
   }
 }
 
+// 导入仅写入分组与图标（saveGroup/addItems），不触碰背景/panelConfig/siteConfig 等任何其他配置
 async function importData(data: ExportData) {
   const batchSize = 50
   for (const g of data.icons) {

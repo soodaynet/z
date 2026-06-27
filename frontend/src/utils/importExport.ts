@@ -24,6 +24,7 @@ interface ExportItem {
   openMethod: number
 }
 
+// 导出范围仅限分组与图标（icons），不含背景图片/panelConfig/siteConfig 等任何其他数据
 export interface ExportData {
   version: number
   appName: string
@@ -52,6 +53,7 @@ function formatDateCompact(): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}`
 }
 
+// 导出范围仅限分组与图标（icons），不含背景图片/panelConfig/siteConfig 等任何其他数据
 /** 创建导出数据结构 */
 export function createExportData(groups: ExportGroup[]): ExportData {
   return {

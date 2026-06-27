@@ -207,7 +207,6 @@ function handleGroupSaved() {
                 <!-- ====== 导入导出 ====== -->
                 <PanelImportExport
                   v-if="activeApp === 'ImportExport'"
-                  :on-saved="props.onSaved"
                 />
 
                 <!-- ====== 搜索引擎 ====== -->
