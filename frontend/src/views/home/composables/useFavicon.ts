@@ -2,11 +2,18 @@ import { ref } from 'vue'
 import { toast } from '@/components/ui/sonner'
 import { getSiteFavicon } from '@/modules'
 
+interface SiteMeta {
+  title: string
+  description: string
+  siteName: string
+}
+
 export function useFavicon() {
   const getIconLoading = ref(false)
   const iconCandidates = ref<string[]>([])
+  const siteMeta = ref<SiteMeta>({ title: '', description: '', siteName: '' })
 
-  // 调用后端获取站点 favicon 候选列表
+  // 调用后端获取站点 favicon 候选列表 + 站点元数据
   async function getIconByUrl(url: string) {
     if (!url) {
       toast.warning('请先输入网址')
@@ -14,11 +21,21 @@ export function useFavicon() {
     }
     getIconLoading.value = true
     iconCandidates.value = []
+    siteMeta.value = { title: '', description: '', siteName: '' }
     try {
-      const res = await getSiteFavicon<{ iconUrls: string[] }>(url)
-      if (res.code === 0 && res.data && res.data.iconUrls.length > 0) {
-        iconCandidates.value = res.data.iconUrls
-        toast.success(`找到 ${iconCandidates.value.length} 个图标候选`)
+      const res = await getSiteFavicon<{ iconUrls: string[]; title?: string; description?: string; siteName?: string }>(url)
+      if (res.code === 0 && res.data) {
+        iconCandidates.value = res.data.iconUrls || []
+        siteMeta.value = {
+          title: res.data.title || '',
+          description: res.data.description || '',
+          siteName: res.data.siteName || '',
+        }
+        if (iconCandidates.value.length > 0) {
+          toast.success(`找到 ${iconCandidates.value.length} 个图标候选`)
+        } else {
+          toast.success('获取信息成功')
+        }
       } else {
         toast.error(res.msg || '获取图标失败')
       }
@@ -38,6 +55,7 @@ export function useFavicon() {
   return {
     getIconLoading,
     iconCandidates,
+    siteMeta,
     getIconByUrl,
     selectIcon,
   }

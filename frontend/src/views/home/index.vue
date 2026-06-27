@@ -166,7 +166,18 @@ function handleWindowIframeLoaded() {
 }
 
 // ====== favicon ======
-const { getIconLoading, iconCandidates, getIconByUrl, selectIcon } = useFavicon()
+const { getIconLoading, iconCandidates, siteMeta, getIconByUrl, selectIcon } = useFavicon()
+
+// 获取站点信息：图标候选 + 标题/描述（仅空字段填充，不覆盖用户已输入的值）
+async function handleGetSiteInfo() {
+  await getIconByUrl(editingItem.value.url)
+  if (!editingItem.value.title) {
+    editingItem.value.title = siteMeta.value.title
+  }
+  if (!editingItem.value.description) {
+    editingItem.value.description = siteMeta.value.description
+  }
+}
 
 async function handleDeleteItem(item: Panel.ItemInfo) {
   if (!item.id) return
@@ -402,7 +413,7 @@ watch(() => authStore.isLoggedIn, (val) => {
       :get-icon-loading="getIconLoading"
       :icon-candidates="iconCandidates"
       @save="handleSaveItem"
-      @get-favicon="getIconByUrl(editingItem.url)"
+      @get-favicon="handleGetSiteInfo"
       @select-icon="(url: string) => { if (editingItem.icon) editingItem.icon.src = selectIcon(url) }"
     />
 

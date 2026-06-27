@@ -11,7 +11,7 @@ import type {
 } from './types'
 import { queryAll, queryFirst } from '../shared/db'
 import { AppError } from '../shared/errors'
-import { isValidUrl, parseFaviconFromHtml, probeFavicon } from '../shared/favicon'
+import { isValidUrl, parseFaviconFromHtml, parseSiteMetadataFromHtml, probeFavicon } from '../shared/favicon'
 
 const ICON_SELECT = 'SELECT id, icon_json, title, url, description, open_method, sort, item_icon_group_id, user_id, created_at, updated_at FROM item_icons'
 const GROUP_SELECT = 'SELECT id, icon, title, description, sort, public_visible, user_id, created_at, updated_at FROM item_icon_groups'
@@ -304,11 +304,13 @@ export class PanelService {
   // ========== 其他 ==========
 
   /**
-   * 获取站点 favicon URL 列表
+   * 获取站点 favicon URL 列表 + 站点元数据
    *
    * 服务端抓取站点 HTML 并解析所有图标 link 标签
    * （icon/shortcut icon/apple-touch-icon/mask-icon/fluid-icon 与 msapplication-TileImage），
-   * 同时 HEAD 探测 /favicon.ico；受 isValidUrl SSRF 防护；HTML 抓取 5s 超时；cf 边缘缓存 1 小时。
+   * 同时解析 Open Graph / 基础元数据（title/description/siteName/ogImage）；
+   * HEAD 探测 /favicon.ico 与 HTML 抓取并行执行；受 isValidUrl SSRF 防护；
+   * HTML 抓取 3s 超时；cf 边缘缓存 1 小时。
    * 抓取失败时使用兜底 URL（站点 /favicon.ico + Google favicon 服务）。
    *
    * @param url 站点 URL
@@ -320,34 +322,43 @@ export class PanelService {
     const parsedUrl = new URL(url)
     const origin = parsedUrl.origin
     const found = new Set<string>()
+    let meta = { title: '', description: '', siteName: '', ogImage: '' }
 
-    // 1. HEAD 探测 /favicon.ico
-    const probe = await probeFavicon(origin, '/favicon.ico')
+    // 并行执行：favicon.ico HEAD 探测 + HTML 抓取
+    const [probe, html] = await Promise.all([
+      probeFavicon(origin, '/favicon.ico'),
+      (async () => {
+        try {
+          const abort = new AbortController()
+          const timeout = setTimeout(() => abort.abort(), 3000)
+          const res = await fetch(origin, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SunPanel/1.0)', Accept: 'text/html' },
+            signal: abort.signal,
+            redirect: 'follow',
+            cf: { cacheTtl: 3600 },
+          } as RequestInit)
+          clearTimeout(timeout)
+          if (!res.ok) return null
+          return await res.text()
+        } catch { return null }
+      })(),
+    ])
+
     if (probe) found.add(probe.url)
 
-    // 2. 抓取站点 HTML 并解析所有图标 link 标签
-    try {
-      const abort = new AbortController()
-      const timeout = setTimeout(() => abort.abort(), 5000)
-      const htmlRes = await fetch(origin, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SunPanel/1.0)', Accept: 'text/html' },
-        signal: abort.signal,
-        redirect: 'follow',
-        cf: { cacheTtl: 3600 },
-      } as RequestInit)
-      clearTimeout(timeout)
-      if (htmlRes.ok) {
-        const html = await htmlRes.text()
-        const candidates = parseFaviconFromHtml(html, origin)
-        for (const c of candidates) found.add(c.url)
-      }
-    } catch { /* HTML 抓取失败，使用兜底 */ }
+    if (html) {
+      // 同时解析 favicon 候选与站点元数据
+      const candidates = parseFaviconFromHtml(html, origin)
+      for (const c of candidates) found.add(c.url)
+      meta = parseSiteMetadataFromHtml(html, origin)
+      if (meta.ogImage) found.add(meta.ogImage)
+    }
 
-    // 3. 兜底
+    // 兜底
     found.add(`${origin}/favicon.ico`)
     found.add(`https://t0.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url=${encodeURIComponent(origin)}`)
 
     const iconUrls = Array.from(found).slice(0, 10)
-    return { iconUrls }
+    return { iconUrls, title: meta.title, description: meta.description, siteName: meta.siteName }
   }
 }

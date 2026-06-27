@@ -50,7 +50,7 @@ const show = computed({
                 v-if="getIconLoading"
                 class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
               />
-              {{ getIconLoading ? '获取中' : '获取' }}
+              {{ getIconLoading ? '获取中' : '获取信息' }}
             </Button>
           </div>
           <!-- 图标候选列表：Card 包裹 + 网格布局 -->

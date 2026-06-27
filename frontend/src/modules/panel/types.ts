@@ -89,4 +89,8 @@ export interface AllDataResponse {
 /** getSiteFavicon 返回结构 */
 export interface SiteFaviconResponse {
   favicon: string
+  iconUrls?: string[]
+  title?: string
+  description?: string
+  siteName?: string
 }

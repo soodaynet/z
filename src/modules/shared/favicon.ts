@@ -185,3 +185,94 @@ export async function probeFavicon(origin: string, path: string): Promise<Favico
     return null
   }
 }
+
+/** 站点元数据解析结果 */
+export interface SiteMetadata {
+  title: string
+  description: string
+  siteName: string
+  ogImage: string  // 绝对 URL，缺失时为空串
+}
+
+/**
+ * 从站点 HTML 中解析 Open Graph / 基础元数据：
+ * - title：优先 og:title，回退到 <title> 标签
+ * - description：优先 og:description，回退到 <meta name="description">
+ * - siteName：取 og:site_name
+ * - ogImage：取 og:image，基于 baseUrl 转绝对 URL，缺失/无效返回空串
+ *
+ * 缺失字段返回空串；畸形 HTML 不抛错（解析逻辑整体 try/catch 包裹）。
+ *
+ * @param html 站点 HTML 文本
+ * @param baseUrl 站点 origin，用于解析相对 og:image
+ */
+export function parseSiteMetadataFromHtml(html: string, baseUrl: string): SiteMetadata {
+  // 构造属性提取正则（大小写不敏感）—— 与 parseFaviconFromHtml 保持一致
+  const attrRegex = (name: string) => new RegExp(`\\b${name}\\s*=\\s*["']([^"']*)["']`, 'i')
+
+  try {
+    // 先分别收集 og:* 与 name="description" 的值，最后按优先级解析
+    let ogTitle = ''
+    let ogDescription = ''
+    let ogSiteName = ''
+    let ogImageRaw = ''
+    let metaDescription = ''
+
+    // 遍历 <meta> 标签
+    const metaRegex = /<meta\b[^>]*>/gi
+    const propertyRe = attrRegex('property')
+    const nameRe = attrRegex('name')
+    const contentRe = attrRegex('content')
+    let metaMatch: RegExpExecArray | null
+    while ((metaMatch = metaRegex.exec(html)) !== null) {
+      const tag = metaMatch[0]
+      const contentMatch = tag.match(contentRe)
+      if (!contentMatch) continue
+      const value = contentMatch[1].trim()
+      if (!value) continue
+
+      // 优先按 property（Open Graph）匹配
+      const propertyMatch = tag.match(propertyRe)
+      if (propertyMatch) {
+        const prop = propertyMatch[1].toLowerCase().trim()
+        if (prop === 'og:title' && !ogTitle) ogTitle = value
+        else if (prop === 'og:description' && !ogDescription) ogDescription = value
+        else if (prop === 'og:site_name' && !ogSiteName) ogSiteName = value
+        else if (prop === 'og:image' && !ogImageRaw) ogImageRaw = value
+        continue
+      }
+
+      // 回退到 name 属性
+      const nameMatch = tag.match(nameRe)
+      if (nameMatch) {
+        const name = nameMatch[1].toLowerCase().trim()
+        if (name === 'description' && !metaDescription) metaDescription = value
+      }
+    }
+
+    // title 回退到 <title> 标签（非贪婪，跨行）
+    let title = ogTitle
+    if (!title) {
+      const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+      if (titleMatch) title = titleMatch[1].trim()
+    }
+
+    // description 按 og:description → meta description 优先级
+    const description = ogDescription || metaDescription
+
+    // og:image 转绝对 URL，失败返回空串
+    let ogImage = ''
+    if (ogImageRaw) {
+      try {
+        ogImage = new URL(ogImageRaw, baseUrl).href
+      } catch {
+        ogImage = ''
+      }
+    }
+
+    return { title, description, siteName: ogSiteName, ogImage }
+  } catch {
+    // 畸形 HTML 等异常情况返回空字段，不抛错
+    return { title: '', description: '', siteName: '', ogImage: '' }
+  }
+}
