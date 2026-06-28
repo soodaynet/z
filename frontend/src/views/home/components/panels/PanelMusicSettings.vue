@@ -41,32 +41,6 @@ function handleReset() {
 
 <template>
   <div class="flex flex-col gap-4">
-    <!-- 一言设置 -->
-    <Card>
-      <CardHeader>
-        <CardTitle>一言设置</CardTitle>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <Label>启用一言</Label>
-          <Switch
-            :model-value="localConfig.hitokotoShow ?? false"
-            @update:model-value="(v: boolean) => (localConfig.hitokotoShow = v)"
-          />
-        </div>
-        <div class="flex flex-col gap-2">
-          <Label>一言 API 地址</Label>
-          <Input
-            v-model="localConfig.hitokotoApiUrl"
-            placeholder="https://v1.hitokoto.cn/"
-          />
-          <p class="text-sm text-muted-foreground">
-            默认 <code>https://v1.hitokoto.cn/</code>，可自建部署
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-
     <!-- 音乐播放器设置 -->
     <Card>
       <CardHeader>

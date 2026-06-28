@@ -15,6 +15,10 @@ interface RawMetingItem {
   album?: string
   url_id?: string | number
   pic_id?: string | number
+  /** 部分上游直接在列表项中返回 url，无需二次抓取 */
+  url?: string
+  /** 部分上游直接在列表项中返回 pic，无需二次抓取 */
+  pic?: string
 }
 
 /** 带 3s 超时的 GET fetch */
@@ -31,6 +35,14 @@ async function fetchWithTimeout(url: string, ms = FETCH_TIMEOUT): Promise<Respon
 /** 解析 url/pic 响应文本：去除首尾引号与空白 */
 function parseMediaUrl(text: string): string {
   return text.trim().replace(/^["']|["']$/g, '')
+}
+
+/** https 页面下将 http:// 资源升级为 https://，避免 mixed content */
+function upgradeProtocol(url: string): string {
+  if (typeof window === 'undefined') return url
+  if (window.location.protocol !== 'https:') return url
+  if (!url) return url
+  return url.replace(/^http:\/\//i, 'https://')
 }
 
 /**
@@ -53,16 +65,44 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
   const tracks: MusicTrack[] = []
   for (let i = 0; i < top.length; i += BATCH_SIZE) {
     const batch = top.slice(i, i + BATCH_SIZE)
+    // 跳过完全空项：所有标识/直链均缺失
+    const validBatch = batch.filter(
+      item => item.id != null || item.url_id != null || item.pic_id != null || item.url || item.pic,
+    )
     const results = await Promise.allSettled(
-      batch.map(async (item): Promise<MusicTrack> => {
+      validBatch.map(async (item): Promise<MusicTrack> => {
         const urlId = item.url_id ?? item.id
         const picId = item.pic_id ?? item.id
-        const [urlRes, picRes] = await Promise.allSettled([
-          urlId != null ? fetchWithTimeout(`${apiUrl}?server=${server}&type=url&id=${urlId}`) : Promise.reject(new Error('no url_id')),
-          picId != null ? fetchWithTimeout(`${apiUrl}?server=${server}&type=pic&id=${picId}`) : Promise.reject(new Error('no pic_id')),
-        ])
-        const url = urlRes.status === 'fulfilled' && urlRes.value.ok ? parseMediaUrl(await urlRes.value.text()) : ''
-        const pic = picRes.status === 'fulfilled' && picRes.value.ok ? parseMediaUrl(await picRes.value.text()) : ''
+
+        // 列表项直接含 url：直接用，无需二次抓取
+        let url = ''
+        if (item.url) {
+          url = upgradeProtocol(item.url)
+        } else if (urlId != null) {
+          // 需要二次抓取 url
+          try {
+            const res = await fetchWithTimeout(`${apiUrl}?server=${server}&type=url&id=${urlId}`)
+            if (res.ok) url = upgradeProtocol(parseMediaUrl(await res.text()))
+          } catch (e) {
+            // 仅实际 fetch 失败时 warn
+            console.warn(`[music] url fetch failed (id=${urlId}):`, e)
+          }
+        }
+        // urlId 为 undefined 时不 reject、不 warn，url 保持空串
+
+        // 列表项直接含 pic：直接用，无需二次抓取
+        let pic = ''
+        if (item.pic) {
+          pic = upgradeProtocol(item.pic)
+        } else if (picId != null) {
+          try {
+            const res = await fetchWithTimeout(`${apiUrl}?server=${server}&type=pic&id=${picId}`)
+            if (res.ok) pic = upgradeProtocol(parseMediaUrl(await res.text()))
+          } catch (e) {
+            console.warn(`[music] pic fetch failed (id=${picId}):`, e)
+          }
+        }
+
         return {
           id: String(item.id ?? ''),
           name: item.name ?? '',
@@ -75,7 +115,11 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
       }),
     )
     for (const r of results) {
-      if (r.status === 'fulfilled') tracks.push(r.value)
+      if (r.status === 'fulfilled') {
+        tracks.push(r.value)
+      } else {
+        console.warn('[music] track parse rejected:', r.reason)
+      }
     }
   }
   return tracks

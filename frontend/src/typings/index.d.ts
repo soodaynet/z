@@ -80,6 +80,28 @@ declare namespace Panel {
     hitokotoShow?: boolean
     /** 一言 API 地址（默认 'https://v1.hitokoto.cn/'，可自建部署） */
     hitokotoApiUrl?: string
+    /** 一言分类（hitokoto.cn 的 c 参数：''=全部 / a-j） */
+    hitokotoCategory?: string
+    /** 文字对齐（默认 'center'） */
+    hitokotoAlign?: 'left' | 'center'
+    /** 打字机效果开关（默认 false） */
+    hitokotoTypewriter?: boolean
+    /** 打字机完整出现时长，秒（默认 3，整句在该时长内均匀打完） */
+    hitokotoTypewriterDuration?: number
+    /** 光标样式（默认 'blink'，仅 type 动画下生效） */
+    hitokotoTypewriterCursor?: 'none' | 'block' | 'blink'
+    /** 动画方式（默认 'type'：逐字；'fade'：逐字淡入；'slide'：逐字滑入） */
+    hitokotoTypewriterAnimation?: 'type' | 'fade' | 'slide'
+    /** 是否显示出处 from（默认 true） */
+    hitokotoShowFrom?: boolean
+    /** 是否显示作者 from_who（默认 true，优先于 from） */
+    hitokotoShowFromWho?: boolean
+    /** 自动轮播开关（默认 false） */
+    hitokotoAutoSwitch?: boolean
+    /** 自动轮播间隔，秒（默认 30，0=关闭） */
+    hitokotoAutoSwitchInterval?: number
+    /** 切换过渡动画时长，秒（默认 0.3） */
+    hitokotoTransitionDuration?: number
     // ====== 音乐播放 ======
     /** 音乐播放器开关（默认 false） */
     musicShow?: boolean

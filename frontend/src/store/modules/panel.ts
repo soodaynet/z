@@ -37,6 +37,17 @@ const defaultPanelConfig: Panel.panelConfig = {
   // ====== 随机一言 ======
   hitokotoShow: false,
   hitokotoApiUrl: 'https://v1.hitokoto.cn/',
+  hitokotoCategory: '',
+  hitokotoAlign: 'center',
+  hitokotoTypewriter: false,
+  hitokotoTypewriterDuration: 3,
+  hitokotoTypewriterCursor: 'blink',
+  hitokotoTypewriterAnimation: 'type',
+  hitokotoShowFrom: true,
+  hitokotoShowFromWho: true,
+  hitokotoAutoSwitch: false,
+  hitokotoAutoSwitchInterval: 30,
+  hitokotoTransitionDuration: 0.3,
   // ====== 音乐播放 ======
   musicShow: false,
   musicServer: 'netease',
