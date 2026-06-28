@@ -66,22 +66,20 @@ async function loadTracks() {
     return
   }
   try {
-    const res = await parseMusic({
+    const data = await parseMusic({
       server: config.musicServer ?? 'netease',
       type: config.musicType ?? 'playlist',
       id: config.musicId ?? '',
       apiUrl: config.musicApiUrl ?? 'https://api.moeyao.cn/meting/',
     })
-    if (res.code === 0 && Array.isArray(res.data)) {
-      tracks.value = res.data
-      currentIndex.value = 0
-      loadError.value = false
-      // 自动播放：tracks 填充后 watch 会更新 src，onCanPlay 会触发 play
-      if (tracks.value.length > 0 && config.musicAutoplay) {
-        wantPlay.value = true
-      }
-    } else {
-      tracks.value = []
+    tracks.value = Array.isArray(data) ? data : []
+    currentIndex.value = 0
+    loadError.value = false
+    // 自动播放：tracks 填充后 watch 会更新 src，onCanPlay 会触发 play
+    if (tracks.value.length > 0 && config.musicAutoplay) {
+      wantPlay.value = true
+    }
+    if (tracks.value.length === 0) {
       loadError.value = true
     }
   } catch {
