@@ -23,13 +23,32 @@ const loaded = ref(false)
 
 const realIconSrc = computed(() => props.item.icon?.src || '')
 
+// 描述浮层跟随鼠标：记录鼠标 client 坐标与显示状态
+const mouseX = ref(0)
+const mouseY = ref(0)
+const showDesc = ref(false)
+
+function onMouseEnter() {
+  if (props.item.description) showDesc.value = true
+}
+function onMouseMove(e: MouseEvent) {
+  mouseX.value = e.clientX
+  mouseY.value = e.clientY
+}
+function onMouseLeave() {
+  showDesc.value = false
+}
+
 // 注：preconnectOrigin 已上提到父组件（home/index.vue），避免每卡片注册 watcher
 </script>
 
 <template>
   <div
-    class="group group-item card-contain w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover will-change-transform"
+    class="group-item w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover will-change-transform"
     @click="emit('click', item)"
+    @mouseenter="onMouseEnter"
+    @mousemove="onMouseMove"
+    @mouseleave="onMouseLeave"
   >
     <div class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg overflow-hidden flex items-center justify-center mb-1">
       <img
@@ -80,21 +99,20 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
       </Button>
     </div>
 
-    <!-- 描述浮层：hover 时显示，毛玻璃基于 --ann-blur/--ann-opacity +20% -->
-    <div
-      v-if="item.description"
-      class="item-desc-glass absolute left-0 right-0 top-full mt-1 mx-1 px-2 py-1.5 rounded-md text-[11px] text-white leading-snug pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
-    >
-      {{ item.description }}
-    </div>
+    <!-- 描述浮层：跟随鼠标位置，teleport 到 body 避免被分组边界裁剪；毛玻璃基于 --ann-blur/--ann-opacity +20% -->
+    <Teleport to="body">
+      <div
+        v-if="showDesc && item.description"
+        class="item-desc-glass fixed px-2 py-1.5 rounded-md text-[11px] text-white leading-snug pointer-events-none z-50 max-w-[240px]"
+        :style="{ left: mouseX + 12 + 'px', top: mouseY + 12 + 'px' }"
+      >
+        {{ item.description }}
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <style scoped>
-/* 卡片布局隔离：原内联 contain 迁移至此，避免内联样式 */
-.card-contain {
-  contain: layout style;
-}
 .icon-fade {
   transition: opacity 200ms ease-out;
 }

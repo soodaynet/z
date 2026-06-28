@@ -473,14 +473,6 @@ watch(() => authStore.isLoggedIn, (val) => {
 </template>
 
 <style scoped>
-/* 分组容器离屏渲染跳过，提升长列表滚动性能 */
-.group-section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 300px;
-  /* 纵向 padding：为 hover scale(1.05) 溢出留空间，避免 content-visibility 的 paint containment 裁切卡片 */
-  padding-block: 6px;
-}
-
 /* 返回顶部按钮：玻璃质感，与公告设置同步 */
 .back-top-btn {
   background-color: rgba(255, 255, 255, var(--ann-opacity, 0.15));
