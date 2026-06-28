@@ -189,19 +189,26 @@ body::-webkit-scrollbar {
   }
 }
 
-/* ========== 修复：非输入区域不应显示文本光标（彻底版） ==========
-   方案：在 @layer base 内用 `* { cursor: default }` 显式覆盖所有元素
-   的 UA 默认 cursor: auto（该默认值会在文本内容上显示 I-beam）。
+/* ========== 修复：非输入区域不应显示文本光标与插入符（彻底版） ==========
+   方案：在 @layer base 内同时处理两类"光标"：
+   1. 鼠标光标（hover 时变化）：用 `* { cursor: default }` 覆盖 UA 默认
+      cursor: auto（该默认值会在文本内容上显示 I-beam）。
+   2. 文本插入符 caret（click 时出现）：用 `* { user-select: none }` 禁用
+      非输入元素的文本选中，阻止浏览器在点击可选中文本时渲染闪烁插入符。
+      这是用户反馈"点击文本出现输入光标"的根因——前几轮只改了鼠标光标，
+      未阻止 caret，故问题未解决。
    放入 @layer base 后，Tailwind v4 的 @layer utilities 中的
-   cursor-pointer / cursor-move / cursor-not-allowed / cursor-text 等工具类
-   优先级仍高于本规则，照常生效。
-   不修改 user-select，文本仍可被选中复制。 */
+   cursor-pointer / cursor-move / cursor-not-allowed / cursor-text /
+   select-text 等工具类优先级仍高于本规则，照常生效。
+   需要选中文本复制的内容容器（如一言、描述浮层）通过 select-text 工具类
+   或局部 user-select: text 恢复。 */
 @layer base {
   * {
     cursor: default;
+    user-select: none;
   }
 
-  /* 文本输入元素保留 I-beam 文本光标 */
+  /* 文本输入元素保留 I-beam 鼠标光标与文本选中/插入符 */
   input[type="text"],
   input[type="password"],
   input[type="email"],
@@ -213,6 +220,7 @@ body::-webkit-scrollbar {
   [contenteditable="true"],
   [contenteditable=""] {
     cursor: text;
+    user-select: text;
   }
 
   /* 可点击交互元素保留手型指针光标 */

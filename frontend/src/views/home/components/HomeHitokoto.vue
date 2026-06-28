@@ -201,6 +201,12 @@ onBeforeUnmount(() => {
   background-color: transparent;
 }
 
+/* 一言文本可选中复制（覆盖全局 user-select: none） */
+.hitokoto-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* type 模式光标：默认块状；blink 类叠加闪烁动画 */
 .hitokoto-cursor {
   display: inline-block;
