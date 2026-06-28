@@ -189,31 +189,36 @@ body::-webkit-scrollbar {
   }
 }
 
-/* ========== 修复：非输入区域不应显示文本光标 ==========
-   cursor 为可继承属性，body 设为 default 后所有非交互文本元素
-   （分组标题、图标标题、公告、描述、页脚等）将不再显示 I-beam。
-   input/textarea/contenteditable 显式保留 text，a/button 显式保留 pointer。
-   不修改 user-select，文本仍可被选中复制。
-   Tailwind 工具类（cursor-pointer / cursor-text 等）特异性高于 body，照常生效。 */
-body {
-  cursor: default;
-}
+/* ========== 修复：非输入区域不应显示文本光标（彻底版） ==========
+   方案：在 @layer base 内用 `* { cursor: default }` 显式覆盖所有元素
+   的 UA 默认 cursor: auto（该默认值会在文本内容上显示 I-beam）。
+   放入 @layer base 后，Tailwind v4 的 @layer utilities 中的
+   cursor-pointer / cursor-move / cursor-not-allowed / cursor-text 等工具类
+   优先级仍高于本规则，照常生效。
+   不修改 user-select，文本仍可被选中复制。 */
+@layer base {
+  * {
+    cursor: default;
+  }
 
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="number"],
-input[type="search"],
-input[type="tel"],
-input[type="url"],
-textarea,
-[contenteditable="true"],
-[contenteditable=""] {
-  cursor: text;
-}
+  /* 文本输入元素保留 I-beam 文本光标 */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  [contenteditable="true"],
+  [contenteditable=""] {
+    cursor: text;
+  }
 
-a[href],
-button:not(:disabled),
-[role="button"] {
-  cursor: pointer;
+  /* 可点击交互元素保留手型指针光标 */
+  a[href],
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
 }
