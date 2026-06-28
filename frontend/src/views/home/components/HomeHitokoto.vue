@@ -15,16 +15,15 @@ async function fetchHitokoto() {
   if (loading.value) return
   loading.value = true
   try {
-    const res = await getHitokoto({ apiUrl: panelState.panelConfig.hitokotoApiUrl })
-    if (res.code === 0 && res.data) {
-      hitokotoText.value = res.data.hitokoto || ''
-      // 出处优先 from_who，否则用 from；from 非空时加书名号
-      const who = res.data.from_who?.trim()
-      const from = res.data.from?.trim()
-      if (who) hitokotoFrom.value = who
-      else if (from) hitokotoFrom.value = `《${from}》`
-      else hitokotoFrom.value = ''
-    }
+    // getHitokoto 直连上游，返回裸 HitokotoData（不再有 code/msg/data 包装）
+    const data = await getHitokoto({ apiUrl: panelState.panelConfig.hitokotoApiUrl })
+    hitokotoText.value = data.hitokoto || ''
+    // 出处优先 from_who，否则用 from；from 非空时加书名号
+    const who = data.from_who?.trim()
+    const from = data.from?.trim()
+    if (who) hitokotoFrom.value = who
+    else if (from) hitokotoFrom.value = `《${from}》`
+    else hitokotoFrom.value = ''
   } catch {
     // 静默失败，保留上次内容
   } finally {
