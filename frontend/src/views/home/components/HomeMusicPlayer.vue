@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import {
   Music,
   Play,
@@ -32,6 +32,10 @@ const volume = ref<number>(panelState.panelConfig.musicVolume ?? 0.7)
 const loop = ref<'all' | 'one' | 'none'>(panelState.panelConfig.musicLoop ?? 'all')
 const order = ref<'list' | 'random'>(panelState.panelConfig.musicOrder ?? 'list')
 const expanded = ref(false)
+// 展开态卡片根元素引用，用于点击外部检测
+const cardRef = ref<HTMLElement | null>(null)
+// 抑制本次 pointerdown 触发外部收起（避免展开按钮点击立即触发收起）
+let suppressCollapseOnNextPointerDown = false
 const showPlaylist = ref(false)
 const loadError = ref(false)
 const audioRef = ref<HTMLAudioElement | null>(null)
@@ -55,6 +59,23 @@ function formatTime(sec: number): string {
 function handleImgError(e: Event) {
   const target = e.target as HTMLImageElement
   target.style.opacity = '0'
+}
+
+// 展开卡片：置 expanded 为 true，并抑制本次 pointerdown 的外部收起检测
+function handleExpand() {
+  expanded.value = true
+  suppressCollapseOnNextPointerDown = true
+}
+
+// document pointerdown 监听：点击卡片外部时收起
+function handleDocumentPointerDown(e: PointerEvent) {
+  if (suppressCollapseOnNextPointerDown) {
+    suppressCollapseOnNextPointerDown = false
+    return
+  }
+  if (expanded.value && cardRef.value && !cardRef.value.contains(e.target as Node)) {
+    expanded.value = false
+  }
 }
 
 // ====== 加载歌单 ======
@@ -225,6 +246,12 @@ onMounted(() => {
     audioRef.value.volume = volume.value
   }
   loadTracks()
+  // 注册 document pointerdown 监听，实现点击卡片外部收起
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
 })
 
 // 当前曲目 url 变化时加载新源
@@ -257,7 +284,7 @@ watch(
     type="button"
     title="音乐播放器"
     class="music-glass fixed right-4 bottom-20 z-40 size-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
-    @click="expanded = true"
+    @click="handleExpand"
   >
     <Music class="size-5" />
     <!-- 失败或空曲目时显示红点 -->
@@ -270,6 +297,7 @@ watch(
   <!-- ====== 展开态：卡片 ====== -->
   <div
     v-else
+    ref="cardRef"
     class="music-glass fixed right-4 bottom-20 z-40 w-72 rounded-xl p-3 shadow-xl"
   >
     <!-- 失败 / 空状态 -->

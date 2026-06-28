@@ -64,10 +64,11 @@ const perCharDelay = computed(() => {
   return Math.min(500, Math.max(30, (typewriterDuration.value * 1000) / total))
 })
 
-// 过渡动画内联样式（淡入淡出切换）
+// 过渡动画内联样式（淡入淡出切换）；minHeight 单行占位，避免切换期间高度塌陷
 const transitionStyle = computed(() => ({
   transition: `opacity ${transitionDuration.value}s ease`,
   opacity: fading.value ? 0 : 1,
+  minHeight: '1.6em',
 }))
 
 // 容器对齐 class
@@ -184,10 +185,10 @@ onBeforeUnmount(() => {
       <template v-else>
         <span class="hitokoto-text">{{ hitokotoText }}</span>
       </template>
-      <!-- 出处/作者：打字结束后显示 -->
+      <!-- 出处/作者：打字结束后显示（用 visibility 占位，避免 v-if 切换 DOM 导致高度抖动） -->
       <span
-        v-if="hitokotoFrom && !isTyping"
         class="ml-2 text-white/60 text-xs"
+        :style="{ visibility: hitokotoFrom && !isTyping ? 'visible' : 'hidden' }"
       >—— {{ hitokotoFrom }}</span>
     </div>
     <div v-else class="text-white/50">加载中...</div>
