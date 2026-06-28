@@ -20,6 +20,7 @@ const PanelGroupManage = defineAsyncComponent(() => import('./panels/PanelGroupM
 const PanelImportExport = defineAsyncComponent(() => import('./panels/PanelImportExport.vue'))
 const PanelSiteSettings = defineAsyncComponent(() => import('./panels/PanelSiteSettings.vue'))
 const PanelSearchSettings = defineAsyncComponent(() => import('./panels/PanelSearchSettings.vue'))
+const PanelHitokotoMusicSettings = defineAsyncComponent(() => import('./panels/PanelHitokotoMusicSettings.vue'))
 
 interface App {
   name: string
@@ -77,6 +78,7 @@ const apps = computed<App[]>(() => {
     { name: '分组管理', key: 'GroupManage', icon: '📁' },
     { name: '导入导出', key: 'ImportExport', icon: '📦' },
     { name: '搜索引擎', key: 'SearchSettings', icon: '🔍' },
+    { name: '一言 / 音乐', key: 'HitokotoMusic', icon: '🎵' },
   ]
   if (authStore.isAdmin) {
     list.push({ name: '用户管理', key: 'Users', icon: '👥', adminOnly: true })
@@ -214,6 +216,13 @@ function handleGroupSaved() {
                   v-if="activeApp === 'SearchSettings'"
                   :search-engine-config="searchEngineConfig"
                   @update:search-engine-config="(cfg) => $emit('update:searchEngineConfig', cfg)"
+                />
+
+                <!-- ====== 一言 / 音乐 ====== -->
+                <PanelHitokotoMusicSettings
+                  v-if="activeApp === 'HitokotoMusic'"
+                  :panel-config="panelConfig"
+                  :on-saved="props.onSaved"
                 />
 
                 <!-- ====== 用户管理 ====== -->

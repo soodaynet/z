@@ -121,5 +121,42 @@
       "maskOpacity": "Mask Opacity",
       "syncNote": "Icon hover and sidebar expanded use the same blur and opacity"
     }
+  },
+  "hitokoto": {
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "error": "No quote"
+  },
+  "music": {
+    "title": "Music",
+    "play": "Play",
+    "pause": "Pause",
+    "prev": "Previous",
+    "next": "Next",
+    "volume": "Volume",
+    "playlist": "Playlist",
+    "loopAll": "List Loop",
+    "loopOne": "Single Loop",
+    "loopNone": "No Loop",
+    "orderList": "Sequential",
+    "orderRandom": "Shuffle",
+    "noTrack": "No tracks",
+    "loadError": "Load failed"
+  },
+  "settings": {
+    "hitokotoMusic": {
+      "title": "Hitokoto / Music",
+      "enableHitokoto": "Enable Hitokoto",
+      "hitokotoApiUrl": "Hitokoto API URL",
+      "enableMusic": "Enable Music Player",
+      "musicServer": "Music Source",
+      "musicType": "Resource Type",
+      "musicId": "Song/Playlist ID",
+      "musicApiUrl": "Meting API URL",
+      "musicAutoplay": "Autoplay",
+      "musicVolume": "Default Volume",
+      "musicLoop": "Loop Mode",
+      "musicOrder": "Play Order"
+    }
   }
 }

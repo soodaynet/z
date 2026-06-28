@@ -34,6 +34,19 @@ const defaultPanelConfig: Panel.panelConfig = {
   systemMonitorShow: false,
   systemMonitorShowTitle: true,
   systemMonitorPublicVisitModeShow: false,
+  // ====== 随机一言 ======
+  hitokotoShow: false,
+  hitokotoApiUrl: 'https://v1.hitokoto.cn/',
+  // ====== 音乐播放 ======
+  musicShow: false,
+  musicServer: 'netease',
+  musicType: 'playlist',
+  musicId: '',
+  musicApiUrl: 'https://api.moeyao.cn/meting/',
+  musicAutoplay: false,
+  musicVolume: 0.7,
+  musicLoop: 'all',
+  musicOrder: 'list',
 }
 
 export const usePanelState = defineStore('panel', {

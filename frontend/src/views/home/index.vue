@@ -19,11 +19,13 @@ import HomeLogo from './components/HomeLogo.vue'
 import HomeWallpaper from './components/HomeWallpaper.vue'
 import HomeItemCard from './components/HomeItemCard.vue'
 import HomeSearchBar from './components/HomeSearchBar.vue'
+import HomeHitokoto from './components/HomeHitokoto.vue'
 
 // 懒加载的非首屏组件
 const HomeAppStarter = defineAsyncComponent(() => import('./components/HomeAppStarter.vue'))
 const HomeEditIconModal = defineAsyncComponent(() => import('./components/HomeEditIconModal.vue'))
 const HomeIframeModal = defineAsyncComponent(() => import('./components/HomeIframeModal.vue'))
+const HomeMusicPlayer = defineAsyncComponent(() => import('./components/HomeMusicPlayer.vue'))
 // 拖拽组件仅在分组编辑模式下渲染，按需加载避免拖入首屏 chunk
 const VueDraggable = defineAsyncComponent(() =>
   import('vue-draggable-plus').then((m) => m.VueDraggable),
@@ -345,6 +347,9 @@ watch(() => authStore.isLoggedIn, (val) => {
         @open-url="openUrl"
       />
 
+      <!-- 随机一言条：搜索框下方、分组列表上方（受 hitokotoShow 用户级开关控制） -->
+      <HomeHitokoto v-if="initialLoaded && panelState.panelConfig.hitokotoShow" />
+
       <!-- 内容区域（始终渲染，loading 结束后图标自动填充） -->
       <div>
         <template v-for="(group, gi) in visibleGroups" :key="group.id || gi">
@@ -437,6 +442,11 @@ watch(() => authStore.isLoggedIn, (val) => {
         <span class="text-[10px] font-medium leading-none mt-0.5">{{ scrollPercent }}%</span>
       </button>
     </Transition>
+
+    <!-- 音乐播放器浮窗：右下角，返回顶部按钮上方（受 musicShow 与 musicId 用户级开关控制） -->
+    <HomeMusicPlayer
+      v-if="initialLoaded && panelState.panelConfig.musicShow && panelState.panelConfig.musicId"
+    />
 
     <!-- ========== AppStarter 应用启动器 ========== -->
     <HomeAppStarter

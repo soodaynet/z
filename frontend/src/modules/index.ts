@@ -39,5 +39,13 @@ export {
   getInit,
 } from './settings/api'
 
+// hitokoto
+export { getHitokoto } from './hitokoto/api'
+export type { HitokotoParams, HitokotoData } from './hitokoto/types'
+
+// music
+export { parseMusic } from './music/api'
+export type { MusicServer, MusicType, MusicParseParams, MusicTrack } from './music/types'
+
 // types
 export type { UserFormData } from './users/types'
