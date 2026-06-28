@@ -446,6 +446,7 @@ watch(() => authStore.isLoggedIn, (val) => {
     <!-- 音乐播放器浮窗：右下角，返回顶部按钮上方（受 musicShow 与 musicId 用户级开关控制） -->
     <HomeMusicPlayer
       v-if="initialLoaded && panelState.panelConfig.musicShow && panelState.panelConfig.musicId"
+      :back-top-visible="showBackTop"
     />
 
     <!-- ========== AppStarter 应用启动器 ========== -->

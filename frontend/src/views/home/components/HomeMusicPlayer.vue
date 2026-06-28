@@ -17,6 +17,9 @@ import { parseMusic } from '@/modules'
 import type { MusicTrack } from '@/modules'
 import { usePanelState } from '@/store'
 
+// 返回顶部按钮可见状态：控制音乐按钮 bottom 位置避让
+const props = defineProps<{ backTopVisible?: boolean }>()
+
 // 首页音乐播放器浮窗：原生 <audio> + 自定义 UI，不依赖 APlayer/MetingJS
 const panelState = usePanelState()
 
@@ -32,6 +35,11 @@ const volume = ref<number>(panelState.panelConfig.musicVolume ?? 0.7)
 const loop = ref<'all' | 'one' | 'none'>(panelState.panelConfig.musicLoop ?? 'all')
 const order = ref<'list' | 'random'>(panelState.panelConfig.musicOrder ?? 'list')
 const expanded = ref(false)
+// 折叠态按钮 / 展开态卡片 bottom 位置：返回顶部可见时上移避让
+const fabBottomStyle = computed(() => ({
+  bottom: props.backTopVisible ? '6.5rem' : '5rem',
+  transition: 'bottom 0.3s ease',
+}))
 // 展开态卡片根元素引用，用于点击外部检测
 const cardRef = ref<HTMLElement | null>(null)
 // 抑制本次 pointerdown 触发外部收起（避免展开按钮点击立即触发收起）
@@ -283,8 +291,9 @@ watch(
     v-if="!expanded"
     type="button"
     title="音乐播放器"
-    class="music-glass fixed right-4 bottom-20 z-40 size-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
+    class="music-glass fixed right-4 z-40 size-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
     :class="{ playing: isPlaying }"
+    :style="fabBottomStyle"
     @click="handleExpand"
   >
     <Music class="size-5" />
@@ -299,7 +308,8 @@ watch(
   <div
     v-else
     ref="cardRef"
-    class="music-glass fixed right-4 bottom-20 z-40 w-72 rounded-xl p-3 shadow-xl"
+    class="music-glass fixed right-4 z-40 w-72 rounded-xl p-3 shadow-xl"
+    :style="fabBottomStyle"
   >
     <!-- 失败 / 空状态 -->
     <div v-if="loadError || tracks.length === 0" class="flex items-center justify-between gap-2 py-2">
