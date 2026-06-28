@@ -188,3 +188,32 @@ body::-webkit-scrollbar {
     opacity: 1;
   }
 }
+
+/* ========== 修复：非输入区域不应显示文本光标 ==========
+   cursor 为可继承属性，body 设为 default 后所有非交互文本元素
+   （分组标题、图标标题、公告、描述、页脚等）将不再显示 I-beam。
+   input/textarea/contenteditable 显式保留 text，a/button 显式保留 pointer。
+   不修改 user-select，文本仍可被选中复制。
+   Tailwind 工具类（cursor-pointer / cursor-text 等）特异性高于 body，照常生效。 */
+body {
+  cursor: default;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+[contenteditable="true"],
+[contenteditable=""] {
+  cursor: text;
+}
+
+a[href],
+button:not(:disabled),
+[role="button"] {
+  cursor: pointer;
+}
