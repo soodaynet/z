@@ -55,6 +55,8 @@ registry.register(userConfigModule)
 registry.register(usersAdminModule)
 registry.register(userSelfModule)
 registry.register(settingsModule)
+registry.register(hitokotoModule)
+registry.register(musicModule)
 registry.install(app)
 ```
 

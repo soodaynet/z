@@ -115,10 +115,10 @@ try {
 | 端点 | 方法 | 实现位置 | 说明 |
 | --- | --- | --- | --- |
 | `/panel/itemIcon/getSiteFavicon` | POST | `src/modules/panel/item-icon/routes.ts` + `src/modules/panel/service.ts` `getSiteFavicon()` | 抓取目标站点 HTML，解析 favicon `<link>` 标签与站点元数据（title/description/OG 标签）。受 `isValidUrl` 约束（屏蔽 localhost/回环/私网段），HTML 抓取 **3s 超时**（`AbortController`），favicon.ico HEAD 探测 2s 超时，`cf: { cacheTtl: 3600 }`（1 小时），路由层 `Cache-Control: private, max-age=600`。 |
+| `/panel/hitokoto/get` | POST | `src/modules/hitokoto/routes.ts` + `src/modules/hitokoto/service.ts` `getHitokoto()` | 代理随机一言上游 API（默认 `https://v1.hitokoto.cn/`，用户可在前端配置 `hitokotoApiUrl` 自定义）。`apiUrl` 经 `isValidUrl` 校验（拒绝内网/file/非 http(s)），**3s 超时**（`AbortController`），仅 GET，响应 ≤ 4KB，isolate 级内存缓存 **5 分钟**（key 含 `apiUrl` 避免不同上游混淆），路由层 `Cache-Control: private, max-age=60`。 |
+| `/panel/music/parse` | POST | `src/modules/music/routes.ts` + `src/modules/music/service.ts` `parseMusic()` | 代理 Meting API（用户在前端配置 `musicApiUrl`，默认 `https://api.moeyao.cn/meting/`）解析歌单/单曲。`apiUrl` 经 `isValidUrl` 校验，**3s 超时**（`AbortController`），仅 GET，列表响应 ≤ 512KB，isolate 级内存缓存 **30 分钟**（key = `apiUrl|server|type|id`）；最多取前 50 首，每首 `url`/`pic` 用 `Promise.allSettled` 并发抓取（分批 10 首），单首同样 3s 超时 + 仅 GET。 |
 
 > 新增 SSRF 端点**必须**在 PR 合并前补充到本清单。
->
-> 说明：随机一言（hitokoto.cn）与音乐解析（Meting API）由前端**直连**上游（用户配置的 `hitokotoApiUrl` / `musicApiUrl`），不经过本服务端代理，因此不涉及服务端 SSRF 风险。上游地址的合法性由用户自行负责。
 
 ---
 

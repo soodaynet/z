@@ -15,6 +15,8 @@ import { panelModule } from './modules/panel'
 import { userConfigModule } from './modules/user-config'
 import { usersAdminModule, userSelfModule } from './modules/users'
 import { settingsModule } from './modules/settings'
+import { hitokotoModule } from './modules/hitokoto'
+import { musicModule } from './modules/music'
 
 const app = new Hono<AppContext>()
 
@@ -84,6 +86,8 @@ registry.register(userConfigModule)
 registry.register(usersAdminModule)
 registry.register(userSelfModule)
 registry.register(settingsModule)
+registry.register(hitokotoModule)
+registry.register(musicModule)
 
 registry.install(app)
 
