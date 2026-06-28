@@ -188,3 +188,23 @@ body::-webkit-scrollbar {
     opacity: 1;
   }
 }
+
+/* ========== 隐藏非输入元素的文本插入符（caret），保留选中能力 ==========
+   方案：用 `caret-color: transparent` 隐藏所有元素的文本插入符（点击可选中文本时
+   浏览器渲染的闪烁竖线），同时完全不触碰 cursor 与 user-select：
+   - cursor 保留 UA 默认 auto（文本上为 I-beam，与生产版本一致）
+   - user-select 保留 UA 默认 auto（文本可正常选中复制）
+   输入元素恢复 caret-color: auto，保留编辑插入符可见。
+   放入 @layer base 后，Tailwind v4 的 caret-* 工具类优先级仍高于本规则。 */
+@layer base {
+  * {
+    caret-color: transparent;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"],
+  [contenteditable=""] {
+    caret-color: auto;
+  }
+}
