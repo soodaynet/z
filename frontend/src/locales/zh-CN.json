@@ -141,8 +141,7 @@
     "orderList": "顺序播放",
     "orderRandom": "随机播放",
     "noTrack": "暂无曲目",
-    "loadError": "加载失败",
-    "urlParseFailed": "曲目 URL 解析失败"
+    "loadError": "加载失败"
   },
   "settings": {
     "hitokotoMusic": {
@@ -157,35 +156,7 @@
       "musicAutoplay": "自动播放",
       "musicVolume": "默认音量",
       "musicLoop": "循环模式",
-      "musicOrder": "播放顺序",
-      "hitokotoCategory": "一言分类",
-      "hitokotoAlign": "文字对齐",
-      "hitokotoTypewriter": "打字机效果",
-      "hitokotoTypewriterSpeed": "打字速度",
-      "hitokotoTypewriterCursor": "光标样式",
-      "hitokotoTypewriterAnimation": "动画方式",
-      "hitokotoAutoSwitch": "自动轮播",
-      "hitokotoAutoSwitchInterval": "轮播间隔",
-      "hitokotoTransitionDuration": "切换过渡时长",
-      "categoryAny": "不限",
-      "categoryA": "动画",
-      "categoryB": "小说",
-      "categoryC": "游戏",
-      "categoryD": "动漫",
-      "categoryE": "其他",
-      "categoryF": "影视",
-      "categoryG": "诗词",
-      "categoryH": "网易云",
-      "categoryI": "哲学",
-      "categoryJ": "抖机灵",
-      "alignLeft": "左对齐",
-      "alignCenter": "居中",
-      "cursorNone": "无",
-      "cursorBlock": "块状",
-      "cursorBlink": "闪烁",
-      "animationType": "逐字",
-      "animationFade": "淡入",
-      "animationSlide": "滑入"
+      "musicOrder": "播放顺序"
     }
   }
 }
