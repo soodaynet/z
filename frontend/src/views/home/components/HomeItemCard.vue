@@ -122,8 +122,5 @@ function onMouseLeave() {
   backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
   -webkit-backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  /* 描述内容可选中复制（覆盖全局 user-select: none） */
-  user-select: text;
-  -webkit-user-select: text;
 }
 </style>
