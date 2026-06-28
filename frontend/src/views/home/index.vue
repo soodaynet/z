@@ -306,7 +306,7 @@ watch(() => authStore.isLoggedIn, (val) => {
 
   <div
     ref="scrollContainerRef"
-    class="min-h-screen relative transition-all flex flex-col scroll-container pt-14 sm:pt-0"
+    class="min-h-screen relative transition-all flex flex-col scroll-container pt-14 sm:pt-0 home-scroll"
     :class="{ 'bg-gray-900': !effectiveBackgroundImage }"
     :style="glassVars"
   >
@@ -483,6 +483,13 @@ watch(() => authStore.isLoggedIn, (val) => {
 </template>
 
 <style scoped>
+/* 桌面端：外层滚动容器左 padding 40px 避开固定侧边栏，
+   使主内容在剩余空间内由 mx-auto 居中，左右页边距对称 */
+@media (min-width: 768px) {
+  .home-scroll {
+    padding-left: 40px;
+  }
+}
 /* 返回顶部按钮：玻璃质感，与公告设置同步 */
 .back-top-btn {
   background-color: rgba(255, 255, 255, var(--ann-opacity, 0.15));

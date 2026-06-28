@@ -284,6 +284,7 @@ watch(
     type="button"
     title="音乐播放器"
     class="music-glass fixed right-4 bottom-20 z-40 size-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
+    :class="{ playing: isPlaying }"
     @click="handleExpand"
   >
     <Music class="size-5" />
@@ -456,6 +457,31 @@ watch(
   -webkit-backdrop-filter: blur(var(--ann-blur, 12px));
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
   color: #fff;
+}
+
+/* 折叠态播放中：脉冲扩散环动画（参考 Mizuki MusicFabButton） */
+.music-glass.playing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: music-fab-pulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes music-fab-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  30% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
 }
 
 /* 控件按钮 */
