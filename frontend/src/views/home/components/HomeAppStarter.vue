@@ -9,7 +9,7 @@ import { toast } from '@/components/ui/sonner'
 import { useAuthStore, usePanelState } from '@/store'
 import { saveGroup, deleteGroups } from '@/modules'
 import AppStarterSidebar from './AppStarterSidebar.vue'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig } from '@/modules'
 
 // 8 个 Panel 改为按需加载：首屏只下载当前激活 Tab 的 chunk，其余在切换时再拉取
 const UsersManage = defineAsyncComponent(() => import('@/components/apps/Users/index.vue'))

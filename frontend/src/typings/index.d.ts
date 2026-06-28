@@ -80,8 +80,8 @@ declare namespace Panel {
     hitokotoShow?: boolean
     /** 一言 API 地址（默认 'https://v1.hitokoto.cn/'，可自建部署） */
     hitokotoApiUrl?: string
-    /** 一言分类（hitokoto.cn 的 c 参数：''=全部 / a-j） */
-    hitokotoCategory?: string
+    /** 一言分类数组（hitokoto.cn 的 c 参数：[]=全部 / a-l 多选） */
+    hitokotoCategories?: string[]
     /** 文字对齐（默认 'center'） */
     hitokotoAlign?: 'left' | 'center'
     /** 打字机效果开关（默认 false） */

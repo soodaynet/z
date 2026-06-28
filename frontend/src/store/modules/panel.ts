@@ -37,7 +37,7 @@ const defaultPanelConfig: Panel.panelConfig = {
   // ====== 随机一言 ======
   hitokotoShow: false,
   hitokotoApiUrl: 'https://v1.hitokoto.cn/',
-  hitokotoCategory: '',
+  hitokotoCategories: [],
   hitokotoAlign: 'center',
   hitokotoTypewriter: false,
   hitokotoTypewriterDuration: 3,

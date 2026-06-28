@@ -30,8 +30,14 @@ const showFrom = computed(() => panelState.panelConfig.hitokotoShowFrom ?? true)
 const showFromWho = computed(() => panelState.panelConfig.hitokotoShowFromWho ?? true)
 // 文字对齐（默认 'center'）
 const align = computed(() => panelState.panelConfig.hitokotoAlign ?? 'center')
-// 一言分类（默认 ''，即全部）
-const category = computed(() => panelState.panelConfig.hitokotoCategory ?? '')
+// 一言分类（默认 []，即全部；兼容旧字段 hitokotoCategory）
+const category = computed<string[]>(() => {
+  const cfg = panelState.panelConfig as Panel.panelConfig & { hitokotoCategory?: string }
+  if (Array.isArray(cfg.hitokotoCategories)) return cfg.hitokotoCategories
+  // 旧字段迁移：单选 string 转为 [string]
+  if (cfg.hitokotoCategory && typeof cfg.hitokotoCategory === 'string') return [cfg.hitokotoCategory]
+  return []
+})
 // 自动轮播开关（默认 false）
 const autoSwitch = computed(() => panelState.panelConfig.hitokotoAutoSwitch ?? false)
 // 自动轮播间隔，秒（默认 30）
@@ -78,11 +84,10 @@ async function fetchHitokoto() {
   if (loading.value) return
   loading.value = true
   try {
-    // 分类参数：hitokotoCategory 为空时不传 c（即"全部"）
-    const categories = category.value ? [category.value] : []
+    // 分类参数：hitokotoCategories 为空数组时不传 c（即"全部"）
     const data = await getHitokoto({
       apiUrl: panelState.panelConfig.hitokotoApiUrl,
-      categories,
+      categories: category.value,
     })
     // 切换前淡出
     if (hitokotoText.value && transitionDuration.value > 0) {

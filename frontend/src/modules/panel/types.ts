@@ -82,8 +82,8 @@ export interface PanelConfig {
   hitokotoShow?: boolean
   /** 一言 API 地址（默认 'https://v1.hitokoto.cn/'，可自建部署） */
   hitokotoApiUrl?: string
-  /** 一言分类（hitokoto.cn 的 c 参数：''=全部 / a-j） */
-  hitokotoCategory?: string
+  /** 一言分类数组（hitokoto.cn 的 c 参数：[]=全部 / a-l 多选） */
+  hitokotoCategories?: string[]
   /** 文字对齐（默认 'center'） */
   hitokotoAlign?: 'left' | 'center'
   /** 打字机效果开关（默认 false） */
@@ -141,15 +141,4 @@ export interface SiteFaviconResponse {
   siteName?: string
 }
 
-/** 搜索引擎 */
-export interface SearchEngine {
-  name: string
-  url: string
-  icon?: string
-}
 
-/** 搜索引擎配置 */
-export interface SearchEngineConfig {
-  engines: SearchEngine[]
-  currentIndex: number
-}

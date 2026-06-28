@@ -12,7 +12,7 @@ import { useSiteConfig, SITE_CACHE_KEY } from './composables/useSiteConfig'
 import { useWallpaper } from './composables/useWallpaper'
 import { useDataLoader, type ItemGroup } from './composables/useDataLoader'
 import { getDefaultSearchEngineConfig } from './composables/useSearch'
-import type { SearchEngineConfig } from '@/modules/panel/types'
+import type { SearchEngineConfig } from '@/modules'
 // 首屏必须同步加载的
 import HomeSidebar from './components/HomeSidebar.vue'
 import HomeLogo from './components/HomeLogo.vue'

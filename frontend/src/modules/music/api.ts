@@ -37,6 +37,14 @@ function parseMediaUrl(text: string): string {
   return text.trim().replace(/^["']|["']$/g, '')
 }
 
+/** 判断值是否为有效的曲目 ID：非空字符串或非空数字（排除 null/undefined/空串） */
+function isValidId(v: unknown): boolean {
+  if (v == null) return false
+  if (typeof v === 'string') return v.trim() !== ''
+  if (typeof v === 'number') return !Number.isNaN(v)
+  return false
+}
+
 /** https 页面下将 http:// 资源升级为 https://，避免 mixed content */
 function upgradeProtocol(url: string): string {
   if (typeof window === 'undefined') return url
@@ -67,7 +75,7 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
     const batch = top.slice(i, i + BATCH_SIZE)
     // 跳过完全空项：所有标识/直链均缺失
     const validBatch = batch.filter(
-      item => item.id != null || item.url_id != null || item.pic_id != null || item.url || item.pic,
+      item => isValidId(item.id) || isValidId(item.url_id) || isValidId(item.pic_id) || item.url || item.pic,
     )
     const results = await Promise.allSettled(
       validBatch.map(async (item): Promise<MusicTrack> => {
@@ -78,11 +86,17 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
         let url = ''
         if (item.url) {
           url = upgradeProtocol(item.url)
-        } else if (urlId != null) {
+        } else if (isValidId(urlId)) {
           // 需要二次抓取 url
           try {
             const res = await fetchWithTimeout(`${apiUrl}?server=${server}&type=url&id=${urlId}`)
-            if (res.ok) url = upgradeProtocol(parseMediaUrl(await res.text()))
+            if (res.ok) {
+              const text = parseMediaUrl(await res.text())
+              // 响应为空串或错误指示时，不作为有效 URL
+              if (text && text !== 'no url_id' && !text.startsWith('error')) {
+                url = upgradeProtocol(text)
+              }
+            }
           } catch (e) {
             // 仅实际 fetch 失败时 warn
             console.warn(`[music] url fetch failed (id=${urlId}):`, e)
@@ -94,10 +108,15 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
         let pic = ''
         if (item.pic) {
           pic = upgradeProtocol(item.pic)
-        } else if (picId != null) {
+        } else if (isValidId(picId)) {
           try {
             const res = await fetchWithTimeout(`${apiUrl}?server=${server}&type=pic&id=${picId}`)
-            if (res.ok) pic = upgradeProtocol(parseMediaUrl(await res.text()))
+            if (res.ok) {
+              const text = parseMediaUrl(await res.text())
+              if (text && text !== 'no url_id' && !text.startsWith('error')) {
+                pic = upgradeProtocol(text)
+              }
+            }
           } catch (e) {
             console.warn(`[music] pic fetch failed (id=${picId}):`, e)
           }
@@ -116,7 +135,10 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
     )
     for (const r of results) {
       if (r.status === 'fulfilled') {
-        tracks.push(r.value)
+        // 跳过 url 与 pic 均为空的无效曲目
+        if (r.value.url || r.value.pic) {
+          tracks.push(r.value)
+        }
       } else {
         console.warn('[music] track parse rejected:', r.reason)
       }
