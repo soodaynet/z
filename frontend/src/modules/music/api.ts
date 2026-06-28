@@ -34,6 +34,17 @@ function parseMediaUrl(text: string): string {
 }
 
 /**
+ * 协议升级：当页面运行在 https 下时，将 http:// 的媒体 URL 升级为 https://，
+ * 避免浏览器混合内容拦截导致音频/图片无法加载。
+ */
+function upgradeProtocol(url: string): string {
+  if (typeof window === 'undefined') return url
+  if (window.location.protocol !== 'https:') return url
+  if (!url) return url
+  return url.replace(/^http:\/\//i, 'https://')
+}
+
+/**
  * 直连 Meting API 解析歌单/单曲为可播放曲目列表。
  * 不走后端代理，浏览器直连上游。解析逻辑（列表 → 每首 url/pic）全部在前端完成。
  * 返回裸 MusicTrack[]（不再包装为 { code, msg, data }）。
@@ -61,8 +72,19 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
           urlId != null ? fetchWithTimeout(`${apiUrl}?server=${server}&type=url&id=${urlId}`) : Promise.reject(new Error('no url_id')),
           picId != null ? fetchWithTimeout(`${apiUrl}?server=${server}&type=pic&id=${picId}`) : Promise.reject(new Error('no pic_id')),
         ])
-        const url = urlRes.status === 'fulfilled' && urlRes.value.ok ? parseMediaUrl(await urlRes.value.text()) : ''
-        const pic = picRes.status === 'fulfilled' && picRes.value.ok ? parseMediaUrl(await picRes.value.text()) : ''
+        // 单首 url/pic 抓取失败仅 warn，不阻塞流程
+        if (urlRes.status === 'rejected') {
+          console.warn(`[music] url fetch failed (id=${urlId}):`, urlRes.reason)
+        }
+        if (picRes.status === 'rejected') {
+          console.warn(`[music] pic fetch failed (id=${picId}):`, picRes.reason)
+        }
+        const url = urlRes.status === 'fulfilled' && urlRes.value.ok
+          ? upgradeProtocol(parseMediaUrl(await urlRes.value.text()))
+          : ''
+        const pic = picRes.status === 'fulfilled' && picRes.value.ok
+          ? upgradeProtocol(parseMediaUrl(await picRes.value.text()))
+          : ''
         return {
           id: String(item.id ?? ''),
           name: item.name ?? '',
@@ -75,7 +97,11 @@ export async function parseMusic(params: MusicParseParams): Promise<MusicTrack[]
       }),
     )
     for (const r of results) {
-      if (r.status === 'fulfilled') tracks.push(r.value)
+      if (r.status === 'fulfilled') {
+        tracks.push(r.value)
+      } else {
+        console.warn('[music] track parse rejected:', r.reason)
+      }
     }
   }
   return tracks

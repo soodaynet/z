@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import {
   Music,
   Play,
@@ -95,14 +95,22 @@ function togglePlay() {
     return
   }
   wantPlay.value = true
-  // 已就绪直接播放；否则确保 src 已设置，等 canplay 触发
   if (audioRef.value.readyState >= 2) {
-    audioRef.value.play().catch(() => {
+    // 已就绪：直接播放
+    audioRef.value.play().catch((e) => {
+      console.warn('[music] play failed (ready):', e)
       wantPlay.value = false
     })
-  } else if (!audioRef.value.src) {
-    audioRef.value.src = currentTrack.value.url
-    audioRef.value.load()
+  } else {
+    // 未就绪：确保 src 已设置后显式 play()，浏览器会在 canplay 后真正播放
+    if (!audioRef.value.src) {
+      audioRef.value.src = currentTrack.value.url
+      audioRef.value.load()
+    }
+    audioRef.value.play().catch((e) => {
+      console.warn('[music] play failed (pending):', e)
+      // 失败时不立即清除 wantPlay，等 canplay 再试一次
+    })
   }
 }
 
@@ -204,7 +212,8 @@ function onLoadedMetadata() {
 function onCanPlay() {
   // 待播放意图满足时触发播放
   if (wantPlay.value && audioRef.value) {
-    audioRef.value.play().catch(() => {
+    audioRef.value.play().catch((e) => {
+      console.warn('[music] play failed on canplay:', e)
       wantPlay.value = false
     })
   }
@@ -236,13 +245,39 @@ watch(
     audioRef.value.load()
   },
 )
+
+// 展开态卡片 ref：用于点击外部收起判定
+const cardRef = ref<HTMLElement | null>(null)
+let pointerDownHandler: ((e: PointerEvent) => void) | null = null
+
+// 展开时监听 document pointerdown，点击卡片外则收起；折叠时移除监听
+watch(expanded, (val) => {
+  if (val) {
+    pointerDownHandler = (e: PointerEvent) => {
+      if (cardRef.value && !cardRef.value.contains(e.target as Node)) {
+        expanded.value = false
+      }
+    }
+    document.addEventListener('pointerdown', pointerDownHandler)
+  } else if (pointerDownHandler) {
+    document.removeEventListener('pointerdown', pointerDownHandler)
+    pointerDownHandler = null
+  }
+})
+
+onBeforeUnmount(() => {
+  if (pointerDownHandler) {
+    document.removeEventListener('pointerdown', pointerDownHandler)
+    pointerDownHandler = null
+  }
+})
 </script>
 
 <template>
   <!-- 隐藏的原生 audio 元素 -->
   <audio
     ref="audioRef"
-    class="hidden"
+    class="music-audio-hidden"
     @timeupdate="onTimeUpdate"
     @loadedmetadata="onLoadedMetadata"
     @canplay="onCanPlay"
@@ -270,11 +305,21 @@ watch(
   <!-- ====== 展开态：卡片 ====== -->
   <div
     v-else
+    ref="cardRef"
     class="music-glass fixed right-4 bottom-20 z-40 w-72 rounded-xl p-3 shadow-xl"
   >
     <!-- 失败 / 空状态 -->
-    <div v-if="loadError || tracks.length === 0" class="flex items-center justify-between gap-2 py-2">
-      <span class="text-sm text-white/80">{{ loadError ? '加载失败' : '暂无曲目' }}</span>
+    <div
+      v-if="loadError || tracks.length === 0 || (tracks.length > 0 && tracks.every(t => !t.url))"
+      class="flex items-center justify-between gap-2 py-2"
+    >
+      <span class="text-sm text-white/80">
+        {{ loadError && tracks.length === 0
+            ? '加载失败'
+            : tracks.length > 0 && tracks.every(t => !t.url)
+                ? '曲目 URL 解析失败'
+                : '暂无曲目' }}
+      </span>
       <div class="flex items-center gap-1">
         <button
           v-if="loadError"
@@ -500,5 +545,14 @@ ul::-webkit-scrollbar {
 ul::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 9999px;
+}
+
+/* audio 元素视觉隐藏：避免 display:none 被部分浏览器抑制事件 */
+.music-audio-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 </style>

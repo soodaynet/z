@@ -141,7 +141,8 @@
     "orderList": "Sequential",
     "orderRandom": "Shuffle",
     "noTrack": "No tracks",
-    "loadError": "Load failed"
+    "loadError": "Load failed",
+    "urlParseFailed": "Track URL parse failed"
   },
   "settings": {
     "hitokotoMusic": {
@@ -156,7 +157,35 @@
       "musicAutoplay": "Autoplay",
       "musicVolume": "Default Volume",
       "musicLoop": "Loop Mode",
-      "musicOrder": "Play Order"
+      "musicOrder": "Play Order",
+      "hitokotoCategory": "Category",
+      "hitokotoAlign": "Text Align",
+      "hitokotoTypewriter": "Typewriter",
+      "hitokotoTypewriterSpeed": "Typing Speed",
+      "hitokotoTypewriterCursor": "Cursor Style",
+      "hitokotoTypewriterAnimation": "Animation",
+      "hitokotoAutoSwitch": "Auto Switch",
+      "hitokotoAutoSwitchInterval": "Switch Interval",
+      "hitokotoTransitionDuration": "Transition Duration",
+      "categoryAny": "Any",
+      "categoryA": "Anime",
+      "categoryB": "Novel",
+      "categoryC": "Game",
+      "categoryD": "Manga",
+      "categoryE": "Other",
+      "categoryF": "Film",
+      "categoryG": "Poetry",
+      "categoryH": "Netease",
+      "categoryI": "Philosophy",
+      "categoryJ": "Joke",
+      "alignLeft": "Left",
+      "alignCenter": "Center",
+      "cursorNone": "None",
+      "cursorBlock": "Block",
+      "cursorBlink": "Blink",
+      "animationType": "Type",
+      "animationFade": "Fade",
+      "animationSlide": "Slide"
     }
   }
 }
