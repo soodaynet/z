@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toRef, type Ref } from 'vue'
+import { computed, toRef, type Ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,7 @@ const { localConfig: rawLocalConfig, handleSave, panelState } = useConfigEditor(
 // 一言高级字段类型：以交集形式补充 Panel.panelConfig 中可能尚未声明的字段，
 // 保证本组件类型自包含，不依赖全局类型定义的完整度。
 type HitokotoPanelConfig = Panel.panelConfig & {
-  hitokotoCategory?: string
+  hitokotoCategories?: string[]
   hitokotoAlign?: 'left' | 'center'
   hitokotoTypewriter?: boolean
   hitokotoTypewriterDuration?: number
@@ -50,6 +50,53 @@ type HitokotoPanelConfig = Panel.panelConfig & {
 
 // 视图别名：将 localConfig 视为含一言高级字段的配置，模板内以 localConfig.xxx 访问
 const localConfig = rawLocalConfig as Ref<HitokotoPanelConfig>
+
+// 一言分类常量（hitokoto.cn 官方 a-l 共 12 个分类）
+const HITOKOTO_CATEGORIES: { key: string; label: string }[] = [
+  { key: 'a', label: '动画' },
+  { key: 'b', label: '漫画' },
+  { key: 'c', label: '游戏' },
+  { key: 'd', label: '文学' },
+  { key: 'e', label: '原创' },
+  { key: 'f', label: '来自网络' },
+  { key: 'g', label: '其他' },
+  { key: 'h', label: '影视' },
+  { key: 'i', label: '诗词' },
+  { key: 'j', label: '网易云' },
+  { key: 'k', label: '哲学' },
+  { key: 'l', label: '抖机灵' },
+]
+
+// 全选状态：已选数量等于 12 时为全选
+const isAllCategories = computed(
+  () =>
+    (localConfig.value.hitokotoCategories?.length ?? 0) ===
+    HITOKOTO_CATEGORIES.length,
+)
+
+// 全选切换
+function toggleAllCategories(v: boolean) {
+  localConfig.value.hitokotoCategories = v
+    ? HITOKOTO_CATEGORIES.map((c) => c.key)
+    : []
+}
+
+// 单个分类切换
+function toggleCategory(key: string, v: boolean) {
+  const list = localConfig.value.hitokotoCategories ?? []
+  if (v) {
+    if (!list.includes(key)) {
+      localConfig.value.hitokotoCategories = [...list, key]
+    }
+  } else {
+    localConfig.value.hitokotoCategories = list.filter((k) => k !== key)
+  }
+}
+
+// 判断某分类是否已选
+function isCategorySelected(key: string): boolean {
+  return (localConfig.value.hitokotoCategories ?? []).includes(key)
+}
 
 function handleReset() {
   panelState.setPanelConfig({})
@@ -87,31 +134,32 @@ function handleReset() {
           </p>
         </div>
 
-        <!-- 一言分类 -->
+        <!-- 一言分类（多选，Switch 开关网格） -->
         <div class="flex flex-col gap-2">
-          <Label>一言分类</Label>
-          <Select
-            :model-value="localConfig.hitokotoCategory ?? ''"
-            @update:model-value="(v) => (localConfig.hitokotoCategory = v as string)"
-          >
-            <SelectTrigger class="w-full">
-              <SelectValue placeholder="选择分类" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">全部</SelectItem>
-              <SelectItem value="a">动画</SelectItem>
-              <SelectItem value="b">小说</SelectItem>
-              <SelectItem value="c">游戏</SelectItem>
-              <SelectItem value="d">动漫</SelectItem>
-              <SelectItem value="e">其他</SelectItem>
-              <SelectItem value="f">影视</SelectItem>
-              <SelectItem value="g">诗词</SelectItem>
-              <SelectItem value="h">网易云</SelectItem>
-              <SelectItem value="i">哲学</SelectItem>
-              <SelectItem value="j">抖机灵</SelectItem>
-            </SelectContent>
-          </Select>
-          <p class="text-sm text-muted-foreground">对应 hitokoto.cn 的 c 参数</p>
+          <div class="flex items-center justify-between">
+            <Label>一言分类</Label>
+            <div class="flex items-center gap-2">
+              <Label class="text-sm text-muted-foreground">全选</Label>
+              <Switch
+                :model-value="isAllCategories"
+                @update:model-value="(v: boolean) => toggleAllCategories(v)"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div
+              v-for="cat in HITOKOTO_CATEGORIES"
+              :key="cat.key"
+              class="flex items-center justify-between gap-2 rounded-md border p-2"
+            >
+              <Label class="text-sm cursor-pointer">{{ cat.label }}</Label>
+              <Switch
+                :model-value="isCategorySelected(cat.key)"
+                @update:model-value="(v: boolean) => toggleCategory(cat.key, v)"
+              />
+            </div>
+          </div>
+          <p class="text-sm text-muted-foreground">对应 hitokoto.cn 的 c 参数，空选表示全部</p>
         </div>
 
         <!-- 文字对齐 -->
