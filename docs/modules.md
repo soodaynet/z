@@ -58,9 +58,8 @@ registry.register(settingsModule)
 registry.install(app)
 ```
 
-> 此外，`src/index.ts` 还直接定义了两个不依赖 DB / 环境变量的根级路由：
+> 此外，`src/index.ts` 还直接定义了一个不依赖 DB / 环境变量的根级路由：
 > - `GET /api/health` —— 健康检查
-> - `GET /api/favicon-proxy` —— Favicon 代理（公开，受 `isValidUrl` SSRF 校验，转发至 Google S2 favicon 服务，边缘缓存）
 >
 > 以及全局中间件：`corsMiddleware`、`csrfMiddleware`、`securityHeadersMiddleware`、`bodyLimitMiddleware`（均 `app.use('*', ...)`）。
 

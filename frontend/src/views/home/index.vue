@@ -395,7 +395,6 @@ watch(() => authStore.isLoggedIn, (val) => {
               <div
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
-                :title="item.description || undefined"
               >
                 <HomeItemCard
                   :item="item"

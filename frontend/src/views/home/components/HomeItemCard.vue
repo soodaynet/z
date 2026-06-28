@@ -28,7 +28,7 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
 
 <template>
   <div
-    class="group-item card-contain w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover will-change-transform"
+    class="group group-item card-contain w-20 h-20 sm:w-[88px] sm:h-[88px] md:w-24 md:h-24 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg relative glass-hover will-change-transform"
     @click="emit('click', item)"
   >
     <div class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg overflow-hidden flex items-center justify-center mb-1">
@@ -79,6 +79,14 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
         <Trash2 class="h-3 w-3" />
       </Button>
     </div>
+
+    <!-- 描述浮层：hover 时显示，毛玻璃基于 --ann-blur/--ann-opacity +20% -->
+    <div
+      v-if="item.description"
+      class="item-desc-glass absolute left-0 right-0 top-full mt-1 mx-1 px-2 py-1.5 rounded-md text-[11px] text-white leading-snug pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
+    >
+      {{ item.description }}
+    </div>
   </div>
 </template>
 
@@ -89,5 +97,12 @@ const realIconSrc = computed(() => props.item.icon?.src || '')
 }
 .icon-fade {
   transition: opacity 200ms ease-out;
+}
+/* 描述浮层毛玻璃：基于 --ann-blur/--ann-opacity +20% */
+.item-desc-glass {
+  background-color: rgba(255, 255, 255, calc(var(--ann-opacity, 0.15) * 1.2));
+  backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
+  -webkit-backdrop-filter: blur(calc(var(--ann-blur, 12px) * 1.2));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 </style>
