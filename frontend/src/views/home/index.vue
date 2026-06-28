@@ -397,21 +397,15 @@ watch(() => authStore.isLoggedIn, (val) => {
               />
             </VueDraggable>
             <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
-              <!-- eslint-disable vue/valid-v-memo -- 嵌套 v-for 场景下规则误报：v-memo 与内层 v-for 同元素，符合 Vue 官方用法 -->
-              <div
+              <HomeItemCard
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
-                v-memo="[item.icon?.src, item.title]"
-              >
-                <HomeItemCard
-                  :item="item"
-                  :editable="false"
-                  :is-edit-mode="false"
-                  :eager-load="eagerKeySet.has(`${gi}-${ii}`)"
-                  @click="openUrl"
-                />
-              </div>
-              <!-- eslint-enable vue/valid-v-memo -->
+                :item="item"
+                :editable="false"
+                :is-edit-mode="false"
+                :eager-load="eagerKeySet.has(`${gi}-${ii}`)"
+                @click="openUrl"
+              />
             </div>
             <div
               v-if="!group.items || group.items.length === 0"
