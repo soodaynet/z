@@ -35,9 +35,9 @@ const volume = ref<number>(panelState.panelConfig.musicVolume ?? 0.7)
 const loop = ref<'all' | 'one' | 'none'>(panelState.panelConfig.musicLoop ?? 'all')
 const order = ref<'list' | 'random'>(panelState.panelConfig.musicOrder ?? 'list')
 const expanded = ref(false)
-// 折叠态按钮 / 展开态卡片 bottom 位置：返回顶部可见时上移避让
+// 折叠态按钮 / 展开态卡片 bottom 位置：返回顶部不可见时位于其位置（1rem），可见时上移避让（5rem）
 const fabBottomStyle = computed(() => ({
-  bottom: props.backTopVisible ? '6.5rem' : '5rem',
+  bottom: props.backTopVisible ? '5rem' : '1rem',
   transition: 'bottom 0.3s ease',
 }))
 // 展开态卡片根元素引用，用于点击外部检测
