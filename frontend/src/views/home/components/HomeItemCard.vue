@@ -75,7 +75,7 @@ function onMouseLeave() {
         {{ item.icon?.text || item.title?.charAt(0) || '?' }}
       </div>
     </div>
-    <span class="text-white text-[11px] sm:text-xs text-center line-clamp-2 px-1 leading-tight font-medium">{{ item.title }}</span>
+    <span class="text-white text-[11px] sm:text-xs text-center break-words px-1 leading-tight font-medium">{{ item.title }}</span>
 
     <!-- 编辑模式下显示编辑/删除按钮，使用 lucide 矢量图标替代字符 -->
     <div v-if="editable && isEditMode" class="absolute top-1 right-1 flex gap-1">

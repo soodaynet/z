@@ -378,9 +378,9 @@ watch(() => authStore.isLoggedIn, (val) => {
               </div>
             </div>
             <VueDraggable
-              v-if="editModeGroupId === group.id"
               v-model="group.items"
               :animation="200"
+              :disabled="editModeGroupId !== group.id"
               class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3"
               @end="saveItemSortOrder(group)"
             >
@@ -388,25 +388,14 @@ watch(() => authStore.isLoggedIn, (val) => {
                 v-for="(item, ii) in group.items"
                 :key="item.id || ii"
                 :item="item"
-                :editable="true"
-                :is-edit-mode="true"
+                :editable="editModeGroupId === group.id"
+                :is-edit-mode="editModeGroupId === group.id"
                 :eager-load="eagerKeySet.has(`${gi}-${ii}`)"
                 @click="openUrl"
                 @edit="openEditItem"
                 @delete="handleDeleteItem"
               />
             </VueDraggable>
-            <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
-              <HomeItemCard
-                v-for="(item, ii) in group.items"
-                :key="item.id || ii"
-                :item="item"
-                :editable="false"
-                :is-edit-mode="false"
-                :eager-load="eagerKeySet.has(`${gi}-${ii}`)"
-                @click="openUrl"
-              />
-            </div>
             <div
               v-if="!group.items || group.items.length === 0"
               class="text-center text-gray-400 text-xs sm:text-sm py-2 sm:py-3"
