@@ -120,7 +120,8 @@ function syncSiteConfig() {
   localSiteConfig.value = { ...props.siteConfig }
 }
 
-watch(() => props.siteConfig, () => syncSiteConfig(), { deep: true })
+// 浅 watch：siteConfig 始终通过引用重新赋值更新（useSiteConfig / useDataLoader 均执行 siteConfig.value = config），浅监听足以触发同步
+watch(() => props.siteConfig, () => syncSiteConfig())
 
 function handleSiteConfigUpdate(config: Panel.SiteConfig) {
   emit('update:siteConfig', config)
