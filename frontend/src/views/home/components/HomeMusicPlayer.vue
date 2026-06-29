@@ -354,7 +354,6 @@ watch(
           :src="currentTrack.pic"
           :alt="currentTrack.name"
           class="size-12 rounded object-cover bg-white/10 flex-shrink-0"
-          loading="lazy"
           @error="handleImgError"
         />
         <div class="flex-1 min-w-0">
