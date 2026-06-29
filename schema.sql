@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     name TEXT DEFAULT '',
     head_image TEXT DEFAULT '',
-    status INTEGER DEFAULT 1,       -- 1:启用 2:停用 3:未激活
+    status INTEGER DEFAULT 1,       -- 0:停用 1:启用
     role INTEGER DEFAULT 2,         -- 1:管理员 2:普通用户
     mail TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
