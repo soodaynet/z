@@ -82,7 +82,7 @@ registry.install(app)
 - **职责**：初始化聚合接口，一次请求返回前端首屏所需的全部数据：`panelData` + `about`（站点信息）+ `authInfo`（当前用户）+ `searchEngine`（搜索引擎配置）。
 - **路由**：
   - `POST /init` —— 挂载 `publicModeMiddleware`（公开访问模式可用）；响应头 `Cache-Control: private, max-age=60, stale-while-revalidate=300`。
-- **文件结构**：`index.ts` / `routes.ts` / `service.ts` / `validator.ts` / `types.ts`
+- **文件结构**：`index.ts` / `routes.ts` / `service.ts` / `types.ts`（无请求体，省略 validator.ts）
 - **Service**：`InitService` —— `aggregate(user)`，内部组合 `PanelService` + `SettingsService` + `UserConfigService`。
 - **跨模块组合**：`routes.ts` 实例化并注入三个兄弟模块的 Service 类（`PanelService` / `SettingsService` / `UserConfigService`）以聚合数据（详见「模块间通信规则」）。
 - **注册**：`registry.register(initModule)`

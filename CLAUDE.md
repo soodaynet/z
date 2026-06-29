@@ -50,7 +50,6 @@ Cloudflare-Sun-Panel（sun-panel）是一个基于 **Cloudflare Workers + D1 + V
 | vue-i18n | ^11.0.0 |
 | typescript | ^5.8.0 |
 | vue-tsc | ^2.2.0 |
-| tw-animate-css | ^1.0.0 |
 | axios | ^1.7.9 |
 | vue-draggable-plus | ^0.6.0 |
 
