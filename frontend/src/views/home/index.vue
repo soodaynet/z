@@ -288,9 +288,15 @@ watch(() => authStore.isAuthenticated, () => {
   refreshAll()
 })
 
-// 退出登录时立刻清理所有登录态 UI 状态（编辑模式、设置面板等）
+// isLoggedIn 双向监听：覆盖 isAuthenticated 无法感知的 public↔login 转换
+// （isAuthenticated 在公开模式与登录模式均为 true，true→true 不触发 watcher）
 watch(() => authStore.isLoggedIn, (val) => {
-  if (!val) {
+  if (val) {
+    // 登录成功（含 public → login 场景）：清缓存并重新加载登录用户数据，
+    // 确保首页立即显示登录账户的分组/图标/面板配置，无需手动刷新
+    refreshAll()
+  } else {
+    // 退出登录：立刻清理所有登录态 UI 状态（编辑模式、设置面板等）
     editModeGroupId.value = null
     starterShow.value = false
   }
