@@ -288,6 +288,13 @@ function handleSidebarExpanded(val: boolean) {
   }
 }
 
+// 打开设置弹窗：清除当前活跃元素焦点，避免 reka-ui Dialog 焦点陷阱给 #app 设
+// aria-hidden 后仍有触发元素（典型为搜索栏引擎切换按钮）保留焦点触发 a11y 警告
+function openSettings() {
+  ;(document.activeElement as HTMLElement | null)?.blur()
+  starterShow.value = true
+}
+
 // 监听认证状态变化：
 // - 退出登录（isAuthenticated true→false）：清缓存 + 重新加载 + 清理登录态 UI
 // - 公开模式登录后刷新由 onMounted 中的 justLoggedIn 检测处理（Home 重新挂载时 watcher 无法感知已变更状态）
@@ -315,7 +322,7 @@ watch(() => authStore.isAuthenticated, (val) => {
     :style="glassVars"
   >
     <!-- 侧边栏分组导航 -->
-    <HomeSidebar :groups="visibleGroups" @open-settings="starterShow = true" @sidebar-expanded="handleSidebarExpanded" />
+    <HomeSidebar :groups="visibleGroups" @open-settings="openSettings" @sidebar-expanded="handleSidebarExpanded" />
 
     <!-- 公告 -->
     <Transition name="announce-fade">

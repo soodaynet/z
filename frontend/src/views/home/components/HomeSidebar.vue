@@ -68,6 +68,9 @@ function handleLogin() {
 }
 
 function handleSettings() {
+  // 清除当前活跃元素焦点：避免 reka-ui Dialog 焦点陷阱给 #app 设 aria-hidden 后，
+  // 仍有触发元素（典型为搜索栏引擎切换按钮）保留焦点触发 aria-hidden a11y 警告
+  ;(document.activeElement as HTMLElement | null)?.blur()
   emit('open-settings')
   expanded.value = false
 }
