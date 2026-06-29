@@ -177,30 +177,29 @@ function handleGroupSaved() {
         />
         <div class="flex-1 min-w-0 overflow-hidden @container" :style="{ height: layoutHeight }">
           <div class="h-full overflow-auto p-3 sm:p-4">
-            <!-- Tab 切换淡入过渡 + KeepAlive 缓存：避免重复 onMounted 请求 -->
+            <!-- Tab 切换淡入过渡 + KeepAlive 缓存：直接包裹组件 VNode，避免外层 div 导致缓存失效 -->
             <Transition name="tab-fade" mode="out-in">
               <KeepAlive>
-                <div :key="activeApp">
                 <!-- ====== 我的信息 ====== -->
                 <PanelUserInfo v-if="activeApp === 'UserInfo'" />
 
                 <!-- ====== 风格设置 ====== -->
                 <PanelStyleSettings
-                  v-if="activeApp === 'Style'"
+                  v-else-if="activeApp === 'Style'"
                   :panel-config="panelConfig"
                   :on-saved="props.onSaved"
                 />
 
                 <!-- ====== 公告设置 ====== -->
                 <PanelAnnounceSettings
-                  v-if="activeApp === 'Announce'"
+                  v-else-if="activeApp === 'Announce'"
                   :panel-config="panelConfig"
                   :on-saved="props.onSaved"
                 />
 
                 <!-- ====== 分组管理 ====== -->
                 <PanelGroupManage
-                  v-if="activeApp === 'GroupManage'"
+                  v-else-if="activeApp === 'GroupManage'"
                   :groups="props.groups"
                   @add-group="openAddGroup"
                   @edit-group="openEditGroup"
@@ -210,42 +209,41 @@ function handleGroupSaved() {
 
                 <!-- ====== 导入导出 ====== -->
                 <PanelImportExport
-                  v-if="activeApp === 'ImportExport'"
+                  v-else-if="activeApp === 'ImportExport'"
                 />
 
                 <!-- ====== 搜索引擎 ====== -->
                 <PanelSearchSettings
-                  v-if="activeApp === 'SearchSettings'"
+                  v-else-if="activeApp === 'SearchSettings'"
                   :search-engine-config="searchEngineConfig"
                   @update:search-engine-config="(cfg) => $emit('update:searchEngineConfig', cfg)"
                 />
 
                 <!-- ====== 一言 ====== -->
                 <PanelHitokotoSettings
-                  v-if="activeApp === 'Hitokoto'"
+                  v-else-if="activeApp === 'Hitokoto'"
                   :panel-config="panelConfig"
                   :on-saved="props.onSaved"
                 />
 
                 <!-- ====== 音乐 ====== -->
                 <PanelMusicSettings
-                  v-if="activeApp === 'Music'"
+                  v-else-if="activeApp === 'Music'"
                   :panel-config="panelConfig"
                   :on-saved="props.onSaved"
                 />
 
                 <!-- ====== 用户管理 ====== -->
-                <div v-if="activeApp === 'Users'" class="flex flex-col gap-4">
+                <div v-else-if="activeApp === 'Users'" class="flex flex-col gap-4">
                   <UsersManage />
                 </div>
 
                 <!-- ====== 站点设置 ====== -->
                 <PanelSiteSettings
-                  v-if="activeApp === 'SiteSettings'"
+                  v-else-if="activeApp === 'SiteSettings'"
                   :site-config="localSiteConfig"
                   @update:site-config="handleSiteConfigUpdate"
                 />
-                </div>
               </KeepAlive>
             </Transition>
           </div>

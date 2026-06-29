@@ -263,6 +263,11 @@ onMounted(async () => {
   buildEagerSet()
   // 一次 /init 调用替代 3 次 API 请求，显著减少首次加载的网络往返
   await initPromise
+  // 公开模式登录后跳转回首页：检测 justLoggedIn 标记，触发一次完整刷新
+  // 替代原 isLoggedIn watcher（该 watcher 在 Home 重新挂载时无法感知已变更的状态）
+  if (authStore.consumeJustLoggedIn()) {
+    refreshAll()
+  }
   // 数据就绪后一次性预连接所有图标 origin（替代 HomeItemCard 每卡片 watch）
   preconnectGroupIcons(groups.value)
   startAnnouncementTimer()
@@ -283,23 +288,16 @@ function handleSidebarExpanded(val: boolean) {
   }
 }
 
-// 监听登录状态变化（退出登录 → 清缓存 + 重新加载 auth + 数据）
-watch(() => authStore.isAuthenticated, () => {
-  refreshAll()
-})
-
-// isLoggedIn 双向监听：覆盖 isAuthenticated 无法感知的 public↔login 转换
-// （isAuthenticated 在公开模式与登录模式均为 true，true→true 不触发 watcher）
-watch(() => authStore.isLoggedIn, (val) => {
-  if (val) {
-    // 登录成功（含 public → login 场景）：清缓存并重新加载登录用户数据，
-    // 确保首页立即显示登录账户的分组/图标/面板配置，无需手动刷新
-    refreshAll()
-  } else {
+// 监听认证状态变化：
+// - 退出登录（isAuthenticated true→false）：清缓存 + 重新加载 + 清理登录态 UI
+// - 公开模式登录后刷新由 onMounted 中的 justLoggedIn 检测处理（Home 重新挂载时 watcher 无法感知已变更状态）
+watch(() => authStore.isAuthenticated, (val) => {
+  if (!val) {
     // 退出登录：立刻清理所有登录态 UI 状态（编辑模式、设置面板等）
     editModeGroupId.value = null
     starterShow.value = false
   }
+  refreshAll()
 })
 </script>
 
